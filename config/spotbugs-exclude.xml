@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Exclusoes do SpotBugs, cada uma com justificativa explicita.
+    Nada e excluido sem motivo documentado.
+-->
+<FindBugsFilter>
+
+    <!--
+        Views do Android possuem ciclos de vida controlados pela plataforma;
+        o SpotBugs alerta sobre campos que expiram, o que nao se aplica aqui.
+    -->
+    <Match>
+        <Class name="~com\.markosferreira\.spacedrepetition\.presentation\..*Activity"/>
+        <Bug pattern="UWF_UNWRITTEN_FIELD,URF_UNREAD_FIELD,EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!--
+        ViewBinding gera classes com nomes derivados de layout; nao escrevemos
+        esse codigo e ele nao e alvo de analise.
+    -->
+    <Match>
+        <Class name="~com\.markosferreira\.spacedrepetition\.databinding\..*"/>
+    </Match>
+
+    <!--
+        Classes geradas pelo Room (implementacoes de DAO e do banco).
+    -->
+    <Match>
+        <Class name="~com\.markosferreira\.spacedrepetition\.data\.local\..*_Impl"/>
+    </Match>
+
+    <!--
+        Classes de teste nao fazem parte do artefato de producao.
+    -->
+    <Match>
+        <Class name="~.*Test"/>
+    </Match>
+
+</FindBugsFilter>

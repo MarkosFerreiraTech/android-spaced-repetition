@@ -1,0 +1,40 @@
+# ---- Android / Gradle ----
+.gradle/
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+local.properties
+
+# ---- IDE ----
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.DS_Store
+
+# ---- Assinatura e segredos (RNF13) ----
+*.jks
+*.keystore
+keystore.properties
+secrets.properties
+.env
+.env.*
+
+# ---- Relatorios de ferramentas ----
+/reports/
+jacoco.exec
+*.exec
+lint-results*.html
+lint-results*.xml
+/dependency-check-report/
+
+# ---- Temporarios ----
+*.log
+*.tmp
+tmp/
