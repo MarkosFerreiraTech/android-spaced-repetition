@@ -117,9 +117,23 @@ jobs:
           set +e
           ./gradlew checkstyleMain --stacktrace 2>&1 | tee /tmp/checkstyle.log
           status=${PIPESTATUS[0]}
-          python3 scripts/ci/checkstyle_report.py build/reports/checkstyle/main.xml || true
-          if [ "$status" -ne 0 ]; then python3 scripts/ci/emit_gradle_errors.py /tmp/checkstyle.log; fi
+          if [ -f build/reports/checkstyle/main.xml ]; then
+            python3 scripts/ci/checkstyle_report.py build/reports/checkstyle/main.xml || true
+          else
+            echo "::warning::Checkstyle nao gerou relatorio: a falha esta na configuracao da tarefa, nao no codigo."
+            python3 scripts/ci/emit_gradle_errors.py /tmp/checkstyle.log
+          fi
           exit $status
+
+      - name: Publicar relatorios de analise estatica
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorios-analise-estatica
+          path: |
+            build/reports/checkstyle/
+            build/reports/spotbugs/
+          retention-days: 14
 
       - name: SpotBugs
         run: ./gradlew spotbugsMain --stacktrace
