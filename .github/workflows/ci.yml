@@ -45,13 +45,22 @@ jobs:
         id: lint
         run: |
           set +e
-          ./gradlew lintDebug --stacktrace
-          status=$?
+          ./gradlew lintDebug --stacktrace 2>&1 | tee /tmp/lint.log
+          status=${PIPESTATUS[0]}
           python3 scripts/ci/lint_report.py build/reports/lint-results-debug.xml || true
+          if [ "$status" -ne 0 ]; then python3 scripts/ci/emit_gradle_errors.py /tmp/lint.log; fi
           exit $status
 
       - name: Testes unitarios
-        run: ./gradlew testDebugUnitTest --stacktrace || (python3 scripts/ci/test_report.py ; exit 1)
+        run: |
+          set +e
+          ./gradlew testDebugUnitTest --stacktrace 2>&1 | tee /tmp/test.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            python3 scripts/ci/test_report.py || true
+            python3 scripts/ci/emit_gradle_errors.py /tmp/test.log
+          fi
+          exit $status
 
       - name: Relatorio de cobertura
         run: ./gradlew jacocoTestReport --stacktrace
@@ -100,9 +109,10 @@ jobs:
       - name: Checkstyle
         run: |
           set +e
-          ./gradlew checkstyleMain --stacktrace
-          status=$?
+          ./gradlew checkstyleMain --stacktrace 2>&1 | tee /tmp/checkstyle.log
+          status=${PIPESTATUS[0]}
           python3 scripts/ci/checkstyle_report.py build/reports/checkstyle/main.xml || true
+          if [ "$status" -ne 0 ]; then python3 scripts/ci/emit_gradle_errors.py /tmp/checkstyle.log; fi
           exit $status
 
       - name: SpotBugs
