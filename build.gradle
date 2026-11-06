@@ -24,6 +24,13 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
+        // Schema do Room versionado no Git (RNF06)
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
+
         // ExecutorService pool usado pela camada de dados (ADR-004)
         buildConfigField "int", "CSV_IMPORT_POOL_SIZE", "1"
         buildConfigField "int", "CSV_MAX_LINES", "50000"
