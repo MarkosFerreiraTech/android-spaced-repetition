@@ -42,10 +42,16 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: 'Android Lint (portao: abortOnError)'
-        run: ./gradlew lintDebug --stacktrace
+        id: lint
+        run: |
+          set +e
+          ./gradlew lintDebug --stacktrace
+          status=$?
+          python3 scripts/ci/lint_report.py build/reports/lint-results-debug.xml || true
+          exit $status
 
       - name: Testes unitarios
-        run: ./gradlew testDebugUnitTest --stacktrace
+        run: ./gradlew testDebugUnitTest --stacktrace || (python3 scripts/ci/test_report.py ; exit 1)
 
       - name: Relatorio de cobertura
         run: ./gradlew jacocoTestReport --stacktrace
@@ -92,7 +98,12 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Checkstyle
-        run: ./gradlew checkstyleMain --stacktrace
+        run: |
+          set +e
+          ./gradlew checkstyleMain --stacktrace
+          status=$?
+          python3 scripts/ci/checkstyle_report.py build/reports/checkstyle/main.xml || true
+          exit $status
 
       - name: SpotBugs
         run: ./gradlew spotbugsMain --stacktrace
