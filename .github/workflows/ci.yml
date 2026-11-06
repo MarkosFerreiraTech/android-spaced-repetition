@@ -34,7 +34,7 @@ jobs:
           java-version: '17'
 
       - name: Configurar Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: Configurar Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -105,7 +105,7 @@ jobs:
           java-version: '17'
 
       - name: Configurar Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - uses: gradle/actions/setup-gradle@v4
 
@@ -186,7 +186,7 @@ jobs:
 
       - name: Configurar Android SDK
         if: steps.token.outputs.available == 'true'
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - uses: gradle/actions/setup-gradle@v4
         if: steps.token.outputs.available == 'true'
