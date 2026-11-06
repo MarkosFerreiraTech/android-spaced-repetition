@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Cerebro</string>
+
+    <!-- Titulos de tela -->
+    <string name="title_decks">Meus simulados</string>
+    <string name="title_import">Importar planilha</string>
+    <string name="title_study">Estudo</string>
+    <string name="title_stats">Estatisticas</string>
+    <string name="title_settings">Configuracoes</string>
+
+    <!-- Tela de baralhos (UC02) -->
+    <string name="decks_empty_title">Nenhum simulado importado</string>
+    <string name="decks_empty_message">Importe uma planilha CSV com suas questoes para comecar a revisar de forma espacada, direto no seu celular e sem internet.</string>
+    <string name="decks_import_cta">Importar CSV</string>
+    <string name="decks_item_summary">%1$d questoes</string>
+    <string name="decks_item_pending">%1$d para revisar</string>
+    <string name="decks_item_up_to_date">Em dia</string>
+    <string name="decks_action_stats">Estatisticas</string>
+    <string name="decks_action_settings">Configuracoes</string>
+
+    <!-- Importacao (UC01) -->
+    <string name="import_select_file">Selecionar CSV</string>
+    <string name="import_hint_title">Como preparar a planilha</string>
+    <string name="import_hint_body">O arquivo precisa do cabecalho:\nquestion,option_a,option_b,option_c,option_d,correct_answer\n\nSeparador virgula ou ponto e virgula. Opcional: option_e e explanation.</string>
+    <string name="import_progress">Lendo planilha… %1$d de %2$d linhas</string>
+    <string name="import_progress_indeterminate">Lendo planilha…</string>
+    <string name="import_report_title">Importacao concluida</string>
+    <string name="import_report_summary">%1$d importadas · %2$d atualizadas · %3$d ignoradas · %4$d com erro</string>
+    <string name="import_report_errors_title">Linhas com erro</string>
+    <string name="import_error_line">Linha %1$d: %2$s</string>
+    <string name="import_cancel">Cancelar</string>
+    <string name="import_choose_another">Importar outro arquivo</string>
+    <string name="import_header_error_title">Cabecalho invalido</string>
+    <string name="import_header_error_body">Colunas esperadas: %1$s\nColunas encontradas: %2$s</string>
+    <string name="import_empty_error">O arquivo nao contem questoes.</string>
+    <string name="import_io_error">Arquivo indisponivel. Selecione novamente.</string>
+    <string name="import_no_access">Sem acesso ao arquivo.</string>
+    <string name="import_too_large">O arquivo excede o limite de %1$d linhas.</string>
+    <string name="import_generic_error">Nao foi possivel concluir a importacao.</string>
+    <string name="import_success_deck">%1$s criado com %2$d questoes.</string>
+
+    <!-- Estudo (UC03 / UC04) -->
+    <string name="study_mode_title">Como voce quer estudar?</string>
+    <string name="study_mode_full">Completo</string>
+    <string name="study_mode_full_desc">Todas as %1$d questoes, inclusive as que voce ja acertou.</string>
+    <string name="study_mode_wrong">So os erros</string>
+    <string name="study_mode_wrong_desc">As %1$d questoes que voce errou na ultima tentativa.</string>
+    <string name="study_mode_wrong_flagged">Erros + marcadas</string>
+    <string name="study_mode_wrong_flagged_desc">%1$d questoes: as erradas mais as que voce marcou com duvida.</string>
+    <string name="study_mode_empty_wrong">Nenhum erro para revisar neste simulado.</string>
+    <string name="study_progress">%1$d de %2$d</string>
+    <string name="study_confirm">Confirmar</string>
+    <string name="study_next">Proxima</string>
+    <string name="study_flag">Acertei com duvida</string>
+    <string name="study_feedback_correct">Correto</string>
+    <string name="study_feedback_wrong">Incorreto</string>
+    <string name="study_feedback_correct_is">A resposta correta e %1$s.</string>
+    <string name="study_summary_title">Sessao concluida</string>
+    <string name="study_summary_body">%1$d acertos · %2$d erros · %3$d marcadas</string>
+    <string name="study_summary_accuracy">Acuracia da sessao: %1$s</string>
+    <string name="study_retry_wrong">Refazer so os erros</string>
+    <string name="study_back_to_decks">Voltar aos simulados</string>
+    <string name="study_resume_title">Retomar sessao</string>
+    <string name="study_resume_body">Voce parou em %1$d de %2$d. Retomar agora?</string>
+    <string name="study_resume_yes">Retomar</string>
+    <string name="study_resume_no">Comecar nova</string>
+    <string name="study_option_letter">%1$s)</string>
+
+    <!-- Estatisticas (UC05) -->
+    <string name="stats_empty">Nenhuma revisao registrada ainda.</string>
+    <string name="stats_empty_cta">Comecar a estudar</string>
+    <string name="stats_accuracy">Acuracia global</string>
+    <string name="stats_total_reviews">Questoes revisadas</string>
+    <string name="stats_streak">Sequencia de dias</string>
+    <string name="stats_streak_value">%1$d dias</string>
+    <string name="stats_due_today">Vencidas hoje</string>
+    <string name="stats_worst_deck">Precisa de atencao: %1$s</string>
+    <string name="stats_by_deck">Por simulado</string>
+
+    <!-- Configuracoes (UC06) -->
+    <string name="settings_daily_limit">Limite diario de questoes novas</string>
+    <string name="settings_timezone">Fuso horario para o calculo de hoje</string>
+    <string name="settings_saved">Preferencias salvas</string>
+    <string name="settings_secure_unavailable">A protecao do dispositivo nao esta disponivel. As preferencias nao serao gravadas.</string>
+    <string name="settings_about">Sobre o Cerebro</string>
+    <string name="settings_version">Versao %1$s</string>
+
+    <!-- Comum -->
+    <string name="action_back">Voltar</string>
+    <string name="cd_deck_icon">Icone de simulado</string>
+    <string name="cd_import_icon">Icone de importacao</string>
+    <string name="cd_stats_icon">Icone de estatisticas</string>
+    <string name="cd_settings_icon">Icone de configuracoes</string>
+</resources>

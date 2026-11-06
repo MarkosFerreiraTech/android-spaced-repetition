@@ -1,0 +1,172 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx3g -Dorg.gradle.daemon=false"
+
+jobs:
+  build:
+    name: Build, testes e cobertura
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Configurar Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
+
+      - name: Permissao do wrapper
+        run: chmod +x ./gradlew
+
+      - name: Android Lint (portao: abortOnError)
+        run: ./gradlew lintDebug --stacktrace
+
+      - name: Testes unitarios
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      - name: Relatorio de cobertura
+        run: ./gradlew jacocoTestReport --stacktrace
+
+      - name: Portao de cobertura (global >= 80%, dominio >= 95%)
+        run: ./gradlew jacocoTestCoverageVerification --stacktrace
+
+      - name: Montar APK de debug
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Publicar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: cerebro-debug-apk
+          path: build/outputs/apk/debug/*.apk
+          retention-days: 14
+
+      - name: Publicar relatorios de teste
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorios-de-teste
+          path: |
+            build/reports/tests/
+            build/reports/jacoco/
+            build/reports/lint-results-debug.html
+          retention-days: 14
+
+  static-analysis:
+    name: Analise estatica
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Permissao do wrapper
+        run: chmod +x ./gradlew
+
+      - name: Checkstyle
+        run: ./gradlew checkstyleMain --stacktrace
+
+      - name: SpotBugs
+        run: ./gradlew spotbugsMain --stacktrace
+
+  security:
+    name: Varredura de seguranca
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks (nenhum segredo versionado - RNF13)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verificar ausencia de permissao de INTERNET (RNF05)
+        run: |
+          if grep -q "android.permission.INTERNET" src/main/AndroidManifest.xml; then
+            echo "::error::O aplicativo e offline-first: a permissao INTERNET nao pode existir."
+            exit 1
+          fi
+          echo "OK: nenhuma permissao de rede declarada."
+
+  sonar:
+    name: SonarCloud (quality gate)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: build
+    # Condicional: sem o secret o job e skipped, nunca failed (US10)
+    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verificar disponibilidade do SONAR_TOKEN
+        id: token
+        run: |
+          if [ -n "${{ secrets.SONAR_TOKEN }}" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::SONAR_TOKEN ausente: analise SonarCloud ignorada. Os portoes locais (JaCoCo, lint, Checkstyle, SpotBugs) permanecem obrigatorios."
+          fi
+
+      - uses: actions/setup-java@v4
+        if: steps.token.outputs.available == 'true'
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.token.outputs.available == 'true'
+
+      - name: Cache do pacote SonarScanner
+        if: steps.token.outputs.available == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Analise SonarCloud
+        if: steps.token.outputs.available == 'true'
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew sonar \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.token="$SONAR_TOKEN" \
+            -Dsonar.qualitygate.wait=true \
+            --stacktrace
