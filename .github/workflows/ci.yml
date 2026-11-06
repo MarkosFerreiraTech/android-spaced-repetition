@@ -41,7 +41,7 @@ jobs:
       - name: Permissao do wrapper
         run: chmod +x ./gradlew
 
-      - name: Android Lint (portao: abortOnError)
+      - name: 'Android Lint (portao: abortOnError)'
         run: ./gradlew lintDebug --stacktrace
 
       - name: Testes unitarios
@@ -50,7 +50,7 @@ jobs:
       - name: Relatorio de cobertura
         run: ./gradlew jacocoTestReport --stacktrace
 
-      - name: Portao de cobertura (global >= 80%, dominio >= 95%)
+      - name: 'Portao de cobertura (global >= 80%, dominio >= 95%)'
         run: ./gradlew jacocoTestCoverageVerification --stacktrace
 
       - name: Montar APK de debug
