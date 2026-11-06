@@ -152,6 +152,14 @@ class ImportDeckUseCaseTest {
         }
 
         @Override
+        public com.markosferreira.spacedrepetition.domain.model.Deck findByName(final String name) {
+            return saved.stream()
+                    .filter(deck -> deck.name().equals(name))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        @Override
         public void save(final com.markosferreira.spacedrepetition.domain.model.Deck deck) {
             saved.add(deck);
             byId.put(deck.id(), deck);

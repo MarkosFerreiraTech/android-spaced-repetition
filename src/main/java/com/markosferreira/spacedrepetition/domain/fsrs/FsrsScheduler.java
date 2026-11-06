@@ -174,13 +174,15 @@ public final class FsrsScheduler implements ReviewScheduler {
      * @return nova dificuldade na escala 1..10
      */
     double nextDifficulty(final double currentDifficulty, final Rating rating) {
-        final double delta = rating == Rating.AGAIN ? parameters.weight(7) : -parameters.weight(6)
-                * (rating.weight() - 3);
+        // D' = D - w6 * (G - 3): erro (G=1) aumenta, acerto (G>3) reduz.
+        final double delta = -parameters.weight(6) * (rating.weight() - 3);
         final double damped = currentDifficulty + delta;
-        final double meanReversion = parameters.weight(4);
-        return clampDifficulty(
-                meanReversion * (1d - parameters.weight(5)) + parameters.weight(5) * damped,
-                currentDifficulty);
+        // D'' = w7 * D0(EASY) + (1 - w7) * D': reversao a media do modelo, que
+        // impede que uma sequencia longa de acertos leve a dificuldade a 1.
+        final double meanReversionTarget = initialDifficulty(Rating.EASY);
+        final double reverted = parameters.weight(7) * meanReversionTarget
+                + (1d - parameters.weight(7)) * damped;
+        return clampDifficulty(reverted, currentDifficulty);
     }
 
     // ---------------------------------------------------------------- curva e intervalo
@@ -196,8 +198,9 @@ public final class FsrsScheduler implements ReviewScheduler {
         if (stability <= 0d) {
             return 0d;
         }
-        final double factor = 0.9d / (1d / FsrsParameters.FACTOR) - 1d;
-        return Math.pow(1d + factor * (elapsedDays / stability), FsrsParameters.DECAY);
+        // R(t, S) = (1 + FACTOR * t / S) ^ DECAY
+        return Math.pow(1d + FsrsParameters.FACTOR * (elapsedDays / stability),
+                FsrsParameters.DECAY);
     }
 
     /**
@@ -210,9 +213,11 @@ public final class FsrsScheduler implements ReviewScheduler {
         if (stability <= 0d) {
             return 1;
         }
-        final double factor = 0.9d / (1d / FsrsParameters.FACTOR) - 1d;
-        final double interval = stability / factor
-                * (Math.pow(FsrsParameters.REQUEST_RETENTION, 1d / FsrsParameters.DECAY) - 1d);
+        // I(S, r) = S / FACTOR * (r ^ (1 / DECAY) - 1). Para r = 0.9 o fator
+        // entre parenteses e exatamente FACTOR, portanto I = S.
+        final double numerator = Math.pow(FsrsParameters.REQUEST_RETENTION,
+                1d / FsrsParameters.DECAY) - 1d;
+        final double interval = stability / FsrsParameters.FACTOR * numerator;
         final long rounded = Math.round(interval);
         return (int) Math.max(1L, Math.min(FsrsParameters.MAXIMUM_INTERVAL_DAYS, rounded));
     }

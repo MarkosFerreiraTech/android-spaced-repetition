@@ -20,6 +20,17 @@ public interface DeckRepository {
     List<DeckSummary> findAllWithCounts(Instant now);
 
     /**
+     * Busca um baralho pelo nome exato.
+     *
+     * <p>Usado na importacao para que reimportar a mesma planilha caia no mesmo
+     * baralho — pre-requisito para o upsert idempotente por content hash (RF06).
+     *
+     * @param name nome do baralho
+     * @return baralho ou null se nao existir
+     */
+    Deck findByName(String name);
+
+    /**
      * Busca um baralho pelo identificador.
      *
      * @param deckId identificador

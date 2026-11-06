@@ -65,8 +65,14 @@ public final class ImportDeckUseCase {
             throw new InvalidHeaderException(outcome.foundColumns());
         }
 
-        final Deck deck = new Deck(UUID.randomUUID().toString(), sanitizeName(deckName),
-                now, null);
+        // Reimportar a mesma planilha deve cair no MESMO baralho; caso contrario o
+        // content hash (que inclui o id do baralho) mudaria e as questoes seriam
+        // duplicadas em vez de atualizadas (RF06).
+        final String name = sanitizeName(deckName);
+        final Deck existingDeck = deckRepository.findByName(name);
+        final Deck deck = existingDeck != null
+                ? existingDeck
+                : new Deck(UUID.randomUUID().toString(), name, now, null);
         deckRepository.save(deck);
 
         final Set<String> existingHashes = cardRepository.findHashesByDeck(deck.id());

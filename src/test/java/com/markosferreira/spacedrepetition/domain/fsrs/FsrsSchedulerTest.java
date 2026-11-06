@@ -208,16 +208,19 @@ class FsrsSchedulerTest {
         }
 
         @Test
-        @DisplayName("a dificuldade respeita a escala 1..10 mesmo apos muitos erros")
-        void difficultySaturatesAtMaximum() {
-            SchedulingInfo card = SchedulingInfo.newCard();
+        @DisplayName("erros sucessivos elevam a dificuldade sem sair da escala 1..10")
+        void repeatedFailuresRaiseDifficultyWithinScale() {
+            final SchedulingInfo initial = scheduler.schedule(
+                    SchedulingInfo.newCard(), Rating.GOOD, NOW);
+            SchedulingInfo card = initial;
             for (int i = 0; i < 40; i++) {
-                card = scheduler.schedule(card, Rating.AGAIN, NOW.plus(Duration.ofHours(i)));
+                card = scheduler.schedule(card, Rating.AGAIN, NOW.plus(Duration.ofHours(i + 1)));
             }
 
+            // A reversao a media do modelo impede saturacao em 10 (ADR-001).
+            assertThat(card.difficulty()).isGreaterThan(initial.difficulty());
             assertThat(card.difficulty())
                     .isBetween(SchedulingInfo.MIN_DIFFICULTY, SchedulingInfo.MAX_DIFFICULTY);
-            assertThat(card.difficulty()).isEqualTo(SchedulingInfo.MAX_DIFFICULTY);
         }
 
         @Test

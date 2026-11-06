@@ -12,8 +12,8 @@ package com.markosferreira.spacedrepetition.domain.fsrs;
  * <ul>
  *   <li>{@code W[0..3]} — estabilidade inicial para Again, Hard, Good, Easy.</li>
  *   <li>{@code W[4..5]} — dificuldade inicial e sua taxa de mudanca.</li>
- *   <li>{@code W[6]} — reversao da dificuldade em caso de acerto.</li>
- *   <li>{@code W[7]} — incremento de dificuldade em caso de erro.</li>
+ *   <li>{@code W[6]} — escala do ajuste de dificuldade por rating.</li>
+ *   <li>{@code W[7]} — peso da reversao da dificuldade a media do modelo.</li>
  *   <li>{@code W[8..10]} — fatores de incremento de estabilidade em revisao.</li>
  *   <li>{@code W[11..14]} — parametros da curva de esquecimento.</li>
  *   <li>{@code W[15..16]} — estabilidade apos erro (reaprendizado).</li>
@@ -42,7 +42,7 @@ public final class FsrsParameters {
         0.4072d, 1.1829d, 3.1262d, 15.4722d,
         // w4..w5: dificuldade inicial e taxa de mudanca
         7.2102d, 0.5316d,
-        // w6..w7: reversao e incremento de dificuldade
+        // w6..w7: escala do ajuste e peso da reversao a media
         1.0651d, 0.0234d,
         // w8..w10: incrementos de estabilidade em revisao
         1.616d, 0.1544d, 1.0824d,
