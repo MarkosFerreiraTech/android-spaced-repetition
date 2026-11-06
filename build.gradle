@@ -148,9 +148,11 @@ tasks.withType(Checkstyle).configureEach {
 spotbugs {
     toolVersion = '4.8.6'
     ignoreFailures = false
-    effort = Effort.MAX
-    reportLevel = Confidence.MEDIUM
-    excludeFilter = file('config/spotbugs-exclude.xml')
+    // Kotlin gera classes internas para constantes de enum com corpo, e o Groovy
+    // resolveria "Confidence.MEDIUM" como a classe aninhada. valueOf evita isso.
+    effort.set(Effort.valueOf('MAX'))
+    reportLevel.set(Confidence.valueOf('MEDIUM'))
+    excludeFilter.set(file('config/spotbugs-exclude.xml'))
 }
 
 tasks.withType(SpotBugsTask).configureEach {
