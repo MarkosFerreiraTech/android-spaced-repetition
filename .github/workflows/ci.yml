@@ -113,11 +113,21 @@ jobs:
 
       - name: Verificar ausencia de permissao de INTERNET (RNF05)
         run: |
-          if grep -q "android.permission.INTERNET" src/main/AndroidManifest.xml; then
-            echo "::error::O aplicativo e offline-first: a permissao INTERNET nao pode existir."
-            exit 1
-          fi
-          echo "OK: nenhuma permissao de rede declarada."
+          # Remove comentarios XML antes de procurar a permissao, para que a
+          # documentacao dentro do manifesto nao gere falso positivo.
+          python3 - <<'SCRIPT'
+          import re
+          import sys
+
+          raw = open("src/main/AndroidManifest.xml", encoding="utf-8").read()
+          without_comments = re.sub(r"<!--.*?-->", "", raw, flags=re.DOTALL)
+
+          if re.search(r"android\.permission\.(INTERNET|ACCESS_NETWORK_STATE)", without_comments):
+              print("::error::O aplicativo e offline-first: permissoes de rede nao podem ser declaradas.")
+              sys.exit(1)
+
+          print("OK: nenhuma permissao de rede declarada em src/main/AndroidManifest.xml")
+          SCRIPT
 
   sonar:
     name: SonarCloud (quality gate)

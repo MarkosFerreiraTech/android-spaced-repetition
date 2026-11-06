@@ -4,8 +4,11 @@
 
     <!--
         Superficie de permissoes minima (RNF15).
-        Nao existe android.permission.INTERNET: o aplicativo e offline-first por
-        construcao, e a ausencia da permissao impede qualquer exfiltracao (RNF05).
+        Nenhuma permissao de rede e declarada: o aplicativo e offline-first por
+        construcao, e a ausencia dessa permissao impede qualquer exfiltracao (RNF05).
+        A verificacao automatizada no CI rejeita a introducao dessa permissao
+        (ver .github/workflows/ci.yml, job "Varredura de seguranca").
+        Este comentario evita propositalmente o literal da permissao.
         O acesso ao CSV usa o Storage Access Framework, que nao exige
         READ_EXTERNAL_STORAGE (RF01).
     -->
