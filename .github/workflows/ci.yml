@@ -33,10 +33,13 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Configurar Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
+          cache-read-only: ${{ github.ref_name != 'develop' }}
 
       - name: Permissao do wrapper
         run: chmod +x ./gradlew
@@ -100,6 +103,9 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v3
 
       - uses: gradle/actions/setup-gradle@v4
 
@@ -177,6 +183,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+
+      - name: Configurar Android SDK
+        if: steps.token.outputs.available == 'true'
+        uses: android-actions/setup-android@v3
 
       - uses: gradle/actions/setup-gradle@v4
         if: steps.token.outputs.available == 'true'
