@@ -1,0 +1,75 @@
+# Configuracao do Dependabot: atualizacoes semanais e agrupadas.
+#
+# O objetivo e manter as dependencias de build e as actions atualizadas sem
+# abrir um PR por artefato. Atualizacoes de bibliotecas de teste, AGP e actions
+# andam em grupos separados, porque o impacto de cada grupo e diferente.
+
+version: 2
+updates:
+  # ---------------------------------------------------------------------
+  # Gradle: dependencias declaradas no version catalog
+  # ---------------------------------------------------------------------
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build"
+      include: "scope"
+    labels:
+      - "chore"
+      - "dependencies"
+    groups:
+      # Bibliotecas de teste falham de forma isolada: se o grupo quebrar, o
+      # problema esta na assertiva, nao no produto.
+      testes:
+        patterns:
+          - "org.junit*"
+          - "org.mockito*"
+          - "org.assertj*"
+          - "org.robolectric*"
+          - "com.tngtech.archunit*"
+          - "androidx.test*"
+      # AGP e Kotlin/Java toolchain mudam juntos ou nao funcionam.
+      android-toolchain:
+        patterns:
+          - "com.android.tools*"
+          - "com.android.application"
+          - "org.jetbrains.kotlin*"
+      # AndroidX e Material evoluem com frequencia; agrupar reduz ruido.
+      androidx:
+        patterns:
+          - "androidx.*"
+          - "com.google.android.material"
+      # Analise estatica: plugin do SpotBugs e Checkstyle.
+      analise-estatica:
+        patterns:
+          - "com.github.spotbugs*"
+          - "com.puppycrawl.tools*"
+          - "org.sonarqube*"
+
+  # ---------------------------------------------------------------------
+  # GitHub Actions
+  # ---------------------------------------------------------------------
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "ci"
+      - "dependencies"
+    groups:
+      actions:
+        patterns:
+          - "*"
