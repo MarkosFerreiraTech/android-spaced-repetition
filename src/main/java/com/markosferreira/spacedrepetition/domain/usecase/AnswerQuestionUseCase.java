@@ -132,6 +132,58 @@ public final class AnswerQuestionUseCase {
         public Instant now() {
             return now;
         }
+
+        /**
+         * Builder de {@link AnswerCommand}.
+         */
+        public static final class Builder {
+            private Card card;
+            private String sessionId;
+            private int selectedIndex;
+            private boolean flagged;
+            private long elapsedMillis;
+            private long averageMillis;
+            private Instant now;
+
+            public Builder card(final Card value) {
+                this.card = value;
+                return this;
+            }
+
+            public Builder sessionId(final String value) {
+                this.sessionId = value;
+                return this;
+            }
+
+            public Builder selectedIndex(final int value) {
+                this.selectedIndex = value;
+                return this;
+            }
+
+            public Builder flagged(final boolean value) {
+                this.flagged = value;
+                return this;
+            }
+
+            public Builder elapsedMillis(final long value) {
+                this.elapsedMillis = value;
+                return this;
+            }
+
+            public Builder averageMillis(final long value) {
+                this.averageMillis = value;
+                return this;
+            }
+
+            public Builder now(final Instant value) {
+                this.now = value;
+                return this;
+            }
+
+            public AnswerCommand build() {
+                return new AnswerCommand(this);
+            }
+        }
     }
 
     /**
