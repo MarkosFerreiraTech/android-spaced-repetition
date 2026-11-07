@@ -23,18 +23,24 @@ public final class StudySession {
     private final List<String> cardIds;
     private final int answeredCount;
 
-    public StudySession(final String id, final String deckId, final StudyMode mode,
-                        final SessionStatus status, final Instant startedAt,
-                        final Instant finishedAt, final List<String> cardIds,
-                        final int answeredCount) {
-        this.id = id;
-        this.deckId = deckId;
-        this.mode = mode;
-        this.status = status;
-        this.startedAt = startedAt;
-        this.finishedAt = finishedAt;
-        this.cardIds = Collections.unmodifiableList(cardIds);
-        this.answeredCount = answeredCount;
+    private StudySession(final Builder builder) {
+        this.id = builder.id;
+        this.deckId = builder.deckId;
+        this.mode = builder.mode;
+        this.status = builder.status;
+        this.startedAt = builder.startedAt;
+        this.finishedAt = builder.finishedAt;
+        this.cardIds = Collections.unmodifiableList(builder.cardIds);
+        this.answeredCount = builder.answeredCount;
+    }
+
+    /**
+     * Cria um builder vazio.
+     *
+     * @return builder de {@link StudySession}
+     */
+    public static Builder builder() {
+        return new Builder();
     }
 
     /**
@@ -50,8 +56,15 @@ public final class StudySession {
     public static StudySession start(final String id, final String deckId,
                                      final StudyMode mode, final Instant startedAt,
                                      final List<String> cardIds) {
-        return new StudySession(id, deckId, mode, SessionStatus.IN_PROGRESS,
-                startedAt, null, cardIds, 0);
+        return builder()
+                .id(id)
+                .deckId(deckId)
+                .mode(mode)
+                .status(SessionStatus.IN_PROGRESS)
+                .startedAt(startedAt)
+                .cardIds(cardIds)
+                .answeredCount(0)
+                .build();
     }
 
     /**
@@ -63,9 +76,28 @@ public final class StudySession {
     public StudySession advance() {
         final int nextCount = Math.min(answeredCount + 1, cardIds.size());
         final boolean last = nextCount >= cardIds.size();
-        return new StudySession(id, deckId, mode,
-                last ? SessionStatus.FINISHED : status,
-                startedAt, last ? Instant.now() : null, cardIds, nextCount);
+        return toBuilder()
+                .status(last ? SessionStatus.FINISHED : status)
+                .finishedAt(last ? Instant.now() : null)
+                .answeredCount(nextCount)
+                .build();
+    }
+
+    /**
+     * Cria uma copia deste estado com os campos alterados.
+     *
+     * @return builder preenchido com os valores atuais
+     */
+    public Builder toBuilder() {
+        return builder()
+                .id(id)
+                .deckId(deckId)
+                .mode(mode)
+                .status(status)
+                .startedAt(startedAt)
+                .finishedAt(finishedAt)
+                .cardIds(new java.util.ArrayList<>(cardIds))
+                .answeredCount(answeredCount);
     }
 
     public String id() {
@@ -146,5 +178,65 @@ public final class StudySession {
     public String toString() {
         return "StudySession{id=" + id + ", mode=" + mode + ", status=" + status
                 + ", answered=" + answeredCount + '/' + cardIds.size() + '}';
+    }
+
+    /**
+     * Builder de {@link StudySession} (evita construtor com muitos parametros).
+     */
+    public static final class Builder {
+        private String id;
+        private String deckId;
+        private StudyMode mode;
+        private SessionStatus status = SessionStatus.IN_PROGRESS;
+        private Instant startedAt;
+        private Instant finishedAt;
+        private List<String> cardIds = new java.util.ArrayList<>();
+        private int answeredCount;
+
+        public Builder id(final String value) {
+            this.id = value;
+            return this;
+        }
+
+        public Builder deckId(final String value) {
+            this.deckId = value;
+            return this;
+        }
+
+        public Builder mode(final StudyMode value) {
+            this.mode = value;
+            return this;
+        }
+
+        public Builder status(final SessionStatus value) {
+            this.status = value;
+            return this;
+        }
+
+        public Builder startedAt(final Instant value) {
+            this.startedAt = value;
+            return this;
+        }
+
+        public Builder finishedAt(final Instant value) {
+            this.finishedAt = value;
+            return this;
+        }
+
+        public Builder cardIds(final List<String> value) {
+            // Copia defensiva (EI_EXPOSE_REP2).
+            this.cardIds = value == null
+                    ? new java.util.ArrayList<>() : new java.util.ArrayList<>(value);
+            return this;
+        }
+
+        public Builder answeredCount(final int value) {
+            this.answeredCount = value;
+            return this;
+        }
+
+        public StudySession build() {
+            return new StudySession(this);
+        }
     }
 }

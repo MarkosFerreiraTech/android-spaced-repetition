@@ -63,11 +63,22 @@ public final class CardMapper {
      */
     public static CardEntity toEntity(final Card card) {
         final SchedulingInfo scheduling = card.scheduling();
-        return new CardEntity(card.id(), card.deckId(), card.question(),
-                OptionCodec.encode(card.options()), card.correctIndex(), card.explanation(),
-                card.contentHash(), scheduling.stability(), scheduling.difficulty(),
-                toEpochMillis(scheduling.dueAt()), toEpochMillis(scheduling.lastReviewAt()),
-                scheduling.repetitions(), scheduling.lapses(), scheduling.state().ordinal());
+        final CardEntity entity = new CardEntity();
+        entity.id = card.id();
+        entity.deckId = card.deckId();
+        entity.question = card.question();
+        entity.optionsJson = OptionCodec.encode(card.options());
+        entity.correctIndex = card.correctIndex();
+        entity.explanation = card.explanation();
+        entity.contentHash = card.contentHash();
+        entity.stability = scheduling.stability();
+        entity.difficulty = scheduling.difficulty();
+        entity.dueAt = toEpochMillis(scheduling.dueAt());
+        entity.lastReviewAt = toEpochMillis(scheduling.lastReviewAt());
+        entity.repetitions = scheduling.repetitions();
+        entity.lapses = scheduling.lapses();
+        entity.state = scheduling.state().ordinal();
+        return entity;
     }
 
     /**
@@ -111,9 +122,18 @@ public final class CardMapper {
      * @return entidade
      */
     public static ReviewLogEntity toEntity(final ReviewLog log) {
-        return new ReviewLogEntity(log.id(), log.cardId(), log.sessionId(),
-                log.rating().weight(), log.correct(), log.flagged(), log.elapsedMillis(),
-                log.reviewedAt().toEpochMilli(), log.stabilityAfter(), log.difficultyAfter());
+        final ReviewLogEntity entity = new ReviewLogEntity();
+        entity.id = log.id();
+        entity.cardId = log.cardId();
+        entity.sessionId = log.sessionId();
+        entity.rating = log.rating().weight();
+        entity.correct = log.correct();
+        entity.flagged = log.flagged();
+        entity.elapsedMillis = log.elapsedMillis();
+        entity.reviewedAt = log.reviewedAt().toEpochMilli();
+        entity.stabilityAfter = log.stabilityAfter();
+        entity.difficultyAfter = log.difficultyAfter();
+        return entity;
     }
 
     /**
@@ -144,10 +164,16 @@ public final class CardMapper {
      * @return entidade
      */
     public static StudySessionEntity toEntity(final StudySession session) {
-        return new StudySessionEntity(session.id(), session.deckId(), session.mode().ordinal(),
-                session.status().ordinal(), session.startedAt().toEpochMilli(),
-                toEpochMillis(session.finishedAt()), String.join(",", session.cardIds()),
-                session.answeredCount());
+        final StudySessionEntity entity = new StudySessionEntity();
+        entity.id = session.id();
+        entity.deckId = session.deckId();
+        entity.mode = session.mode().ordinal();
+        entity.status = session.status().ordinal();
+        entity.startedAt = session.startedAt().toEpochMilli();
+        entity.finishedAt = toEpochMillis(session.finishedAt());
+        entity.cardIds = String.join(",", session.cardIds());
+        entity.answeredCount = session.answeredCount();
+        return entity;
     }
 
     /**
@@ -159,10 +185,16 @@ public final class CardMapper {
     public static StudySession toDomain(final StudySessionEntity entity) {
         final List<String> ids = entity.cardIds.isEmpty()
                 ? new ArrayList<>() : Arrays.asList(entity.cardIds.split(","));
-        return new StudySession(entity.id, entity.deckId,
-                StudyMode.values()[entity.mode], SessionStatus.values()[entity.status],
-                Instant.ofEpochMilli(entity.startedAt), toInstant(entity.finishedAt),
-                ids, entity.answeredCount);
+        return StudySession.builder()
+                .id(entity.id)
+                .deckId(entity.deckId)
+                .mode(StudyMode.values()[entity.mode])
+                .status(SessionStatus.values()[entity.status])
+                .startedAt(Instant.ofEpochMilli(entity.startedAt))
+                .finishedAt(toInstant(entity.finishedAt))
+                .cardIds(ids)
+                .answeredCount(entity.answeredCount)
+                .build();
     }
 
     /**

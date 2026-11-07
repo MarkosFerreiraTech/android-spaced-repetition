@@ -57,20 +57,9 @@ public class ReviewLogEntity {
     @ColumnInfo(name = "difficulty_after")
     public double difficultyAfter;
 
-    public ReviewLogEntity(@NonNull final String id, @NonNull final String cardId,
-                           @Nullable final String sessionId, final int rating,
-                           final boolean correct, final boolean flagged,
-                           final long elapsedMillis, final long reviewedAt,
-                           final double stabilityAfter, final double difficultyAfter) {
-        this.id = id;
-        this.cardId = cardId;
-        this.sessionId = sessionId;
-        this.rating = rating;
-        this.correct = correct;
-        this.flagged = flagged;
-        this.elapsedMillis = elapsedMillis;
-        this.reviewedAt = reviewedAt;
-        this.stabilityAfter = stabilityAfter;
-        this.difficultyAfter = difficultyAfter;
+    /** Construtor vazio exigido pelo Room. As colunas sao atribuidas por campo. */
+    public ReviewLogEntity() {
+        this.id = "";
+        this.cardId = "";
     }
 }

@@ -139,16 +139,27 @@ dependencies {
 checkstyle {
     toolVersion = '10.20.1'
     configFile = file('config/checkstyle/checkstyle.xml')
-    configProperties = ['checkstyle.cache.file': "${buildDir}/checkstyle-cachefile"]
     ignoreFailures = false
     maxWarnings = 0
     showViolations = true
 }
 
-tasks.withType(Checkstyle).configureEach {
+// O plugin Checkstyle cria tarefas por source set do projeto Java. Como o
+// projeto Android tem o codigo em src/main/java (e nao no source set "main"
+// do projeto raiz), nenhuma tarefa e criada pela convencao. Registramos uma
+// tarefa explicita, sem depender de nome inferido.
+tasks.register('checkstyleMain', Checkstyle) {
+    description = 'Executa o Checkstyle sobre o codigo de producao.'
+    group = 'verification'
+    source = fileTree('src/main/java') {
+        include '**/*.java'
+    }
+    classpath = files()
     reports {
         xml.required = true
+        xml.outputLocation = file("${buildDir}/reports/checkstyle/main.xml")
         html.required = true
+        html.outputLocation = file("${buildDir}/reports/checkstyle/main.html")
     }
 }
 
@@ -162,10 +173,27 @@ spotbugs {
     excludeFilter.set(file('config/spotbugs-exclude.xml'))
 }
 
-tasks.withType(SpotBugsTask).configureEach {
+// Mesma razao do Checkstyle: o plugin cria tarefas por source set do projeto
+// Java, e o codigo Android nao esta no source set "main" do projeto raiz.
+tasks.register('spotbugsMain', SpotBugsTask) {
+    description = 'Executa o SpotBugs sobre o bytecode de producao.'
+    group = 'verification'
+    // As classes vem do build do Android, nao do source set Java do projeto raiz
+    // (SpotBugsTask expoe classDirs/sourceDirs, nao um `classpath`).
+    dependsOn 'compileDebugJavaWithJavac'
+    classDirs = files("${buildDir}/intermediates/javac/debug/compileDebugJavaWithJavac/classes")
+    sourceDirs = files('src/main/java')
+    auxClassPaths = files()
+    // Sem esta linha o config/spotbugs-exclude.xml e ignorado e o SpotBugs
+    // reporta codigo gerado pelo Room e dependencias imutaveis como defeito.
+    excludeFilter = file('config/spotbugs-exclude.xml')
+    effort = Effort.valueOf('MAX')
+    reportLevel = Confidence.valueOf('MEDIUM')
     reports {
         html.required = true
-        xml.required = false
+        html.outputLocation = file("${buildDir}/reports/spotbugs/main.html")
+        xml.required = true
+        xml.outputLocation = file("${buildDir}/reports/spotbugs/main.xml")
     }
 }
 

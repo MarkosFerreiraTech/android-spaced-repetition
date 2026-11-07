@@ -1,8 +1,10 @@
 name: CI
 
 on:
+  # Todo push em qualquer branch deve ser validado. Restringir a main/develop
+  # deixava branches de feature sem cobertura de CI ate a abertura do PR.
   push:
-    branches: [main, develop]
+    branches: ['**']
   pull_request:
     branches: [main, develop]
   workflow_dispatch:
@@ -121,7 +123,15 @@ jobs:
             python3 scripts/ci/checkstyle_report.py build/reports/checkstyle/main.xml || true
           else
             echo "::warning::Checkstyle nao gerou relatorio: a falha esta na configuracao da tarefa, nao no codigo."
-            python3 scripts/ci/emit_gradle_errors.py /tmp/checkstyle.log
+            # Extrai o bloco de diagnostico do Gradle, descartando stack frames.
+            grep -vE '^\s+at [a-zA-Z0-9_.]+\(' /tmp/checkstyle.log \
+              | grep -A12 -E 'What went wrong|Caused by|Execution failed for task|error:' \
+              | grep -v '^--$' \
+              | head -25 \
+              | while IFS= read -r line; do
+                  clean=$(printf '%s' "$line" | tr -d '\r' | sed 's/::/:/g' | cut -c1-300)
+                  echo "::error::$clean"
+                done
           fi
           exit $status
 
@@ -136,7 +146,37 @@ jobs:
           retention-days: 14
 
       - name: SpotBugs
-        run: ./gradlew spotbugsMain --stacktrace
+        run: |
+          set +e
+          ./gradlew spotbugsMain --stacktrace 2>&1 | tee /tmp/spotbugs.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            # Extrai os achados do relatorio XML e o bloco de erro do Gradle
+            if [ -f build/reports/spotbugs/main.xml ]; then
+              python3 - <<'SB'
+          import xml.etree.ElementTree as ET
+          root = ET.parse("build/reports/spotbugs/main.xml").getroot()
+          count = 0
+          for bug in root.iter("BugInstance"):
+              cls = bug.find("Class")
+              src = bug.find(".//SourceLine")
+              file_name = src.get("sourcefile") if src is not None else (cls.get("classname") if cls is not None else "?")
+              line = src.get("start") if src is not None else "1"
+              klass = cls.get("classname") if cls is not None else "?"
+              print(f"::error file=src/main/java/{file_name},line={line}::[{bug.get('type')}] {klass} ({bug.get('category')}/{bug.get('priority')})")
+              count += 1
+          print(f"::error::SpotBugs encontrou {count} achado(s).")
+          SB
+            else
+              grep -vE '^\s+at [a-zA-Z0-9_.]+\(' /tmp/spotbugs.log \
+                | grep -A8 -E 'What went wrong|Execution failed|error:' \
+                | head -20 \
+                | while IFS= read -r line; do
+                    echo "::error::$(printf '%s' "$line" | tr -d '\r' | sed 's/::/:/g' | cut -c1-300)"
+                  done
+            fi
+          fi
+          exit $status
 
   security:
     name: Varredura de seguranca

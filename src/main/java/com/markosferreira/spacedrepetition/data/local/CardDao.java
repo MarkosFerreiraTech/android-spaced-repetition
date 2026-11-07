@@ -3,9 +3,11 @@ package com.markosferreira.spacedrepetition.data.local;
 import androidx.annotation.Nullable;
 import androidx.room.Dao;
 import androidx.room.Insert;
-import androidx.room.OnConflictStrategy;
+import androidx.room.Update;
+import androidx.room.Upsert;
 import androidx.room.Query;
 import androidx.room.Transaction;
+
 
 import java.util.List;
 
@@ -20,7 +22,17 @@ public interface CardDao {
      *
      * @param cards questoes
      */
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    /**
+     * Insere ou atualiza um lote de questoes.
+     *
+     * <p>Deliberadamente {@link Upsert} e nao {@code @Insert(REPLACE)}: o
+     * REPLACE executa DELETE seguido de INSERT, e como {@code review_logs}
+     * referencia {@code cards} em {@code ON DELETE CASCADE}, reimportar uma
+     * planilha apagaria todo o historico de revisoes (violacao do RF06).
+     *
+     * @param cards questoes a persistir
+     */
+    @Upsert
     @Transaction
     void upsertAll(List<CardEntity> cards);
 
@@ -53,22 +65,16 @@ public interface CardDao {
     List<String> findHashesByDeck(String deckId);
 
     /**
-     * Atualiza o estado de agendamento de uma questao.
+     * Atualiza a questao a partir da entidade ja modificada.
      *
-     * @param cardId identificador
-     * @param stability estabilidade
-     * @param difficulty dificuldade
-     * @param dueAt vencimento em epoch millis
-     * @param lastReviewAt ultima revisao em epoch millis
-     * @param reps repeticoes
-     * @param lapses lapsos
-     * @param state estado (ordinal)
+     * <p>Usa {@code @Update} do Room em vez de uma query com sete parametros:
+     * e o idioma nativo do framework, nao exige mapear coluna a coluna e evita
+     * assinaturas longas (regra ParameterNumber do Checkstyle).
+     *
+     * @param card entidade com o agendamento atualizado
      */
-    @Query("UPDATE cards SET stability = :stability, difficulty = :difficulty, "
-            + "due_at = :dueAt, last_review_at = :lastReviewAt, reps = :reps, "
-            + "lapses = :lapses, state = :state WHERE id = :cardId")
-    void updateScheduling(String cardId, double stability, double difficulty,
-                          long dueAt, long lastReviewAt, int reps, int lapses, int state);
+    @Update
+    void updateCard(CardEntity card);
 
     /**
      * Data media de resposta (ms) de uma questao, base para o rating EASY.
@@ -76,9 +82,6 @@ public interface CardDao {
      * @param cardId identificador
      * @return media ou 0 quando nao ha historico
      */
-    @Query("SELECT AVG(elapsed_millis) FROM review_logs WHERE card_id = :cardId")
-    double averageElapsedMillis(String cardId);
-
     /**
      * Questoes erradas na ultima tentativa (modo WRONG_ONLY).
      *

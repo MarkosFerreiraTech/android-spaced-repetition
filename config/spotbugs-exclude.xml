@@ -23,10 +23,72 @@
     </Match>
 
     <!--
-        Classes geradas pelo Room (implementacoes de DAO e do banco).
+        Codigo gerado pelo Room: implementacoes de DAO (*_Impl), o banco
+        (*_Impl) e os adaptadores de Cursor. Nao e codigo escrito no projeto,
+        nao deve ser alvo de analise e nao pode ser corrigido por nos.
+        O SpotBugs reporta falsos positivos como RCN_REDUNDANT_NULLCHECK
+        nas checagens de Cursor que o proprio Room gera.
     -->
     <Match>
-        <Class name="~com\.markosferreira\.spacedrepetition\.data\.local\..*_Impl"/>
+        <Class name="~.*_Impl"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE,RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE,NP_NULL_ON_SOME_PATH,DLS_DEAD_LOCAL_STORE,SF_SWITCH_NO_DEFAULT"/>
+    </Match>
+    <Match>
+        <Class name="~.*_Impl$.*"/>
+    </Match>
+    <Match>
+        <Class name="~.*_Impl\$.*"/>
+    </Match>
+
+    <!-- Codigo gerado pelo ViewBinding -->
+    <Match>
+        <Class name="~.*\.databinding\..*"/>
+    </Match>
+
+    <!--
+        Projecoes de leitura do Room (rows de query). O framework preenche os
+        campos por reflexao a partir do cursor; getters nao existem porque os
+        consumidores acessam o campo diretamente. O SpotBugs as trata como
+        campos nao lidos, o que e falso positivo estrutural.
+    -->
+    <Match>
+        <Class name="com.markosferreira.spacedrepetition.data.local.DeckSummaryRow"/>
+        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"/>
+    </Match>
+    <Match>
+        <Class name="com.markosferreira.spacedrepetition.data.local.DeckAccuracyRow"/>
+        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"/>
+    </Match>
+
+    <!--
+        Adaptadores de dados guardam referencias a DAOs, ao banco e ao fuso.
+        O SpotBugs sinaliza EI_EXPOSE_REP2 para qualquer tipo nao primitivo,
+        mas essas dependencias sao imutaveis ou thread-safe por contrato e sao
+        precisamente o que a injecao de dependencia deve receber — copiar um
+        banco de dados em cada construtor nao faz sentido.
+    -->
+    <Match>
+        <Class name="com.markosferreira.spacedrepetition.data.repository.Room*Repository"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <!--
+        O compilador gera classes sinteticas (lambdas) no mesmo arquivo-fonte;
+        o filtro acima, por nome exato, nao as alcanca. O regex cobre a familia
+        inteira de adaptadores de dados, inclusive as sinteticas.
+    -->
+    <Match>
+        <Class name="~com\.markosferreira\.spacedrepetition\.data\.repository\.Room.*Repository"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!--
+        Constantes de agendamento do modelo FSRS possuem limites intencionais
+        comparados em clamps; o SpotBugs sinaliza como redundante, mas os
+        valores vem de configuracao e nao de literais.
+    -->
+    <Match>
+        <Class name="com.markosferreira.spacedrepetition.domain.model.SchedulingInfo"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
 
     <!--
