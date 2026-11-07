@@ -224,7 +224,9 @@ public final class StudySession {
         }
 
         public Builder cardIds(final List<String> value) {
-            this.cardIds = value;
+            // Copia defensiva (EI_EXPOSE_REP2).
+            this.cardIds = value == null
+                    ? new java.util.ArrayList<>() : new java.util.ArrayList<>(value);
             return this;
         }
 

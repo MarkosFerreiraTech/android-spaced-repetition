@@ -46,6 +46,21 @@
     </Match>
 
     <!--
+        Projecoes de leitura do Room (rows de query). O framework preenche os
+        campos por reflexao a partir do cursor; getters nao existem porque os
+        consumidores acessam o campo diretamente. O SpotBugs as trata como
+        campos nao lidos, o que e falso positivo estrutural.
+    -->
+    <Match>
+        <Class name="com.markosferreira.spacedrepetition.data.local.DeckSummaryRow"/>
+        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"/>
+    </Match>
+    <Match>
+        <Class name="com.markosferreira.spacedrepetition.data.local.DeckAccuracyRow"/>
+        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"/>
+    </Match>
+
+    <!--
         Constantes de agendamento do modelo FSRS possuem limites intencionais
         comparados em clamps; o SpotBugs sinaliza como redundante, mas os
         valores vem de configuracao e nao de literais.

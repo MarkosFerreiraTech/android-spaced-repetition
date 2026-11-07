@@ -1,5 +1,6 @@
 package com.markosferreira.spacedrepetition.domain.model;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -173,7 +174,10 @@ public final class Card {
         }
 
         public Builder options(final List<String> value) {
-            this.options = value;
+            // Copia defensiva: o builder nao deve reter referencia a uma lista
+            // que o chamador ainda pode mutar (EI_EXPOSE_REP2).
+            this.options = value == null
+                    ? Collections.emptyList() : new ArrayList<>(value);
             return this;
         }
 
