@@ -1,8 +1,10 @@
 name: CI
 
 on:
+  # Todo push em qualquer branch deve ser validado. Restringir a main/develop
+  # deixava branches de feature sem cobertura de CI ate a abertura do PR.
   push:
-    branches: [main, develop]
+    branches: ['**']
   pull_request:
     branches: [main, develop]
   workflow_dispatch:
