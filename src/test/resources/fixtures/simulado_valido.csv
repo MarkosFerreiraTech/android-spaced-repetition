@@ -1,0 +1,6 @@
+question,option_a,option_b,option_c,option_d,correct_answer,explanation
+"Qual servico da AWS oferece armazenamento de objetos com durabilidade de 11 noves?",S3,EBS,EFS,Glacier,A,"S3 e o servico de object storage."
+"Qual servico executa codigo sem provisionar servidores?",EC2,Lambda,ECS,Fargate,B,"Lambda e serverless por definicao."
+"Qual banco e gerenciado e relacional na AWS?",DynamoDB,RDS,Redshift,ElastiCache,B,"RDS e o servico relacional gerenciado."
+"Qual servico entrega CDN global?",Route 53,CloudFront,Direct Connect,Global Accelerator,B,"CloudFront e a CDN da AWS."
+"Qual servico de mensageria e totalmente gerenciado?",SQS,Kinesis,MSK,MQ,A,"SQS e fila gerenciada."

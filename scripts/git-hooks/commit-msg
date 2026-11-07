@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+#
+# Hook de commit-msg: rejeita mensagens fora do Conventional Commits.
+#
+# Instalacao (uma vez por clone):
+#   git config core.hooksPath scripts/git-hooks
+#
+# O padrao aceito e:
+#   tipo(escopo): descricao
+#
+# Tipos permitidos: feat, fix, docs, style, refactor, perf, test, build, ci,
+# chore, revert. O escopo e obrigatorio, exceto para revert.
+# Corpo e rodape sao livres; o assunto deve ter no maximo 72 caracteres.
+
+set -u
+
+MESSAGE_FILE="$1"
+MAX_SUBJECT=72
+
+TIPOS='feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert'
+
+# Ignora comentarios e linhas vazias do editor.
+SUBJECT=$(grep -vE '^#' "$MESSAGE_FILE" | sed '/^[[:space:]]*$/d' | head -n 1)
+
+# Permite os commits que o proprio Git gera em merge/revert/rebase.
+case "$SUBJECT" in
+    "Merge "*|"Revert "*|"fixup! "*|"squash! "*)
+        exit 0
+        ;;
+esac
+
+if [ -z "$SUBJECT" ]; then
+    echo "ERRO: mensagem de commit vazia." >&2
+    exit 1
+fi
+
+if [ ${#SUBJECT} -gt $MAX_SUBJECT ]; then
+    echo "ERRO: assunto com ${#SUBJECT} caracteres (maximo ${MAX_SUBJECT})." >&2
+    echo "      Assunto: $SUBJECT" >&2
+    exit 1
+fi
+
+# Formato estrito: tipo(escopo): descricao  -- escopo obrigatorio.
+if printf '%s' "$SUBJECT" | grep -qE "^($TIPOS)\([a-z0-9._/-]+\): .+"; then
+    # Assunto nao deve terminar com ponto.
+    case "$SUBJECT" in
+        *.) echo "ERRO: nao termine o assunto com ponto final." >&2; exit 1 ;;
+    esac
+    exit 0
+fi
+
+cat >&2 <<EOF
+ERRO: mensagem fora do padrao Conventional Commits.
+
+Recebido: $SUBJECT
+
+Formato esperado:
+    tipo(escopo): descricao curta no imperativo
+
+Tipos permitidos:
+    feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+
+O escopo e obrigatorio e usa minusculas, por exemplo:
+    feat(csv): adicionar parser OpenCSV com validacao por linha
+    fix(build): ligar o excludeFilter ao spotbugsMain
+    docs(readme): documentar o fluxo de importacao
+
+Referencia: docs/VERSIONAMENTO.md
+EOF
+exit 1

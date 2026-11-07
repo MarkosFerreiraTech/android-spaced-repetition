@@ -1,0 +1,4 @@
+question,option_a,option_b,option_c,option_d,correct_answer,explanation
+"Qual destes servicos, entre os listados, guarda objetos?",S3,EBS,EFS,Glacier,A,"Primeira linha da explicacao.
+Segunda linha da explicacao, com virgula."
+"Pergunta simples",A,B,,,B,""

@@ -1,0 +1,8 @@
+question,option_a,option_b,option_c,option_d,correct_answer,explanation
+"Questao valida 1",A,B,C,D,A,"ok"
+"Questao com gabarito inexistente",A,B,C,D,F,"gabarito F nao existe"
+"",A,B,C,D,A,"enunciado vazio"
+"Questao com uma alternativa",A,,,,"A",""
+"Questao valida 2",A,B,C,D,B,"ok"
+"Questao com gabarito fora das alternativas",A,B,,,D,""
+"Questao valida 3",A,B,C,D,C,"ok"
