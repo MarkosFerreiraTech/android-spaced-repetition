@@ -8,7 +8,7 @@
 ![Java](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)
 ![Gradle](https://img.shields.io/badge/Gradle-8.11.1-02303A?logo=gradle&logoColor=white)
 ![Status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)
-![Versão](https://img.shields.io/badge/vers%C3%A3o-0.2.0--dev-informational)
+![Versão](https://img.shields.io/badge/vers%C3%A3o-0.2.0-informational)
 
 ---
 
@@ -44,22 +44,25 @@ O **Cerebro** fecha esse ciclo:
 | **Domínio (Java puro)** | Algoritmo FSRS completo: estabilidade, dificuldade, curva de esquecimento, intervalos com limites |
 | **Casos de uso** | Importação de baralho, montagem da fila nos 3 modos, início e persistência de sessão, resposta com reagendamento |
 | **Política de rating** | Tradução do resultado do simulado em rating FSRS |
-| **Persistência** | Room com 4 entidades, índices (incluindo `content_hash` único para upsert), 4 DAOs com agregações em SQL |
+| **Persistência** | Room com 4 entidades, índices (incluindo `content_hash` único), 6 adaptadores implementando as portas de saída |
 | **Arquitetura** | Clean Architecture + MVVM, 6 portas de domínio, injeção por construtor, mappers que impedem vazamento de entidades |
-| **Qualidade** | 36 testes (JUnit 5 + AssertJ), JaCoCo com gate (80% global / 95% domínio), Checkstyle, SpotBugs |
-| **CI/CD** | GitHub Actions com 4 jobs: build+testes+cobertura+APK, análise estática, segurança, SonarCloud condicional |
-| **DevSecOps** | Classificação de dados documentada, `EncryptedSharedPreferences` planejado, gitleaks, ausência da permissão `INTERNET` |
+| **Importação** | Parser OpenCSV com RFC 4180, cabeçalho validado e erro por linha que não interrompe o arquivo |
+| **Qualidade** | JUnit 5 + AssertJ + Mockito, ArchUnit com 10 regras de camada, JaCoCo com gate (80% global / 95% domínio), Checkstyle, SpotBugs |
+| **CI/CD** | GitHub Actions com 4 jobs: build+testes+cobertura+APK, análise estática, segurança, SonarCloud. Qodana como análise complementar |
+| **DevSecOps** | `EncryptedSharedPreferences` com MasterKey AES256-GCM no Keystore, classificação de dados, gitleaks, ausência da permissão `INTERNET` |
+| **Arquitetura de app** | Composition root sem framework (`AppContainer`), `CerebroApplication`, executor serial para importação |
 
 ### Planejado
 
-| Issue | Entrega | Marco |
-|---|---|---|
-| [#12](https://github.com/MarkosFerreiraTech/android-spaced-repetition/issues/12) | Telas de importação e listagem de baralhos | M3 |
-| [#13](https://github.com/MarkosFerreiraTech/android-spaced-repetition/issues/13) | Importador CSV com OpenCSV em `ExecutorService` | M3 |
-| [#14](https://github.com/MarkosFerreiraTech/android-spaced-repetition/issues/14) | Tela de sessão de estudo (3 modos) | M3 |
-| [#15](https://github.com/MarkosFerreiraTech/android-spaced-repetition/issues/15) | Estatísticas e tela de configurações cifradas | M3 |
-| [#16](https://github.com/MarkosFerreiraTech/android-spaced-repetition/issues/16) | DevSecOps: `EncryptedSharedPreferences` + Keystore | M4 |
-| [#20](https://github.com/MarkosFerreiraTech/android-spaced-repetition/issues/20) | Release v1.0.0 com APK assinado | M4 |
+| Issue | Entrega |
+|---|---|
+| [#12](https://github.com/MarkosFerreiraTech/android-spaced-repetition/issues/12) | Telas de importação e listagem de baralhos (XML + ViewBinding + Material 3) |
+| [#13](https://github.com/MarkosFerreiraTech/android-spaced-repetition/issues/13) | Tela de sessão de estudo com os três modos |
+| [#14](https://github.com/MarkosFerreiraTech/android-spaced-repetition/issues/14) | Tela de estatísticas e progresso |
+| [#19](https://github.com/MarkosFerreiraTech/android-spaced-repetition/issues/19) | Release v1.0.0 com APK |
+
+Os ViewModels seguem o padrão MVVM e são testados em JVM pura com
+`InstantTaskExecutorRule`; as Activities são casca fina que apenas observa estado.
 
 ## 🚀 Como executar
 
@@ -115,7 +118,10 @@ O APK de debug também é publicado como artefato em cada execução verde do CI
 | [User Stories](docs/user-stories.md) | 12 histórias canônicas com critérios de aceite em Gherkin e story points |
 | [Arquitetura](docs/arquitetura.md) | C4 níveis 1 e 2, camadas, diagrama de classes, DER do Room, fluxos de sequência |
 | [ADRs](docs/adr/) | 6 decisões arquiteturais com contexto, alternativas e consequências |
-| [Segurança](docs/seguranca.md) | Classificação de dados e mecanismos de proteção *(em elaboração — issue #16)* |
+| [Segurança](docs/seguranca.md) | Classificação de dados e mecanismos de proteção |
+| [Versionamento](docs/VERSIONAMENTO.md) | Conventional Commits, Git Flow, política SemVer, tags anotadas e checklist de release |
+| [Changelog](CHANGELOG.md) | Histórico de versões no padrão Keep a Changelog |
+| [Como contribuir](CONTRIBUTING.md) | Fluxo de branches, padrão de commits e instalação do hook de validação |
 
 ### Convenção do CSV
 

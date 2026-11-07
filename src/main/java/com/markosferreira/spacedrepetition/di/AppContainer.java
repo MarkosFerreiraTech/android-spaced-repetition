@@ -27,6 +27,7 @@ import com.markosferreira.spacedrepetition.domain.usecase.AnswerQuestionUseCase;
 import com.markosferreira.spacedrepetition.domain.usecase.BuildStudyQueueUseCase;
 import com.markosferreira.spacedrepetition.domain.usecase.ImportDeckUseCase;
 import com.markosferreira.spacedrepetition.domain.usecase.StartStudySessionUseCase;
+import com.markosferreira.spacedrepetition.presentation.deck.DeckListViewModel;
 
 /**
  * Container de injecao de dependencia da aplicacao.
@@ -206,6 +207,18 @@ public final class AppContainer {
                     sessionRepository());
         }
         return startStudySessionUseCase;
+    }
+
+    /**
+     * Fabrica do ViewModel da lista de baralhos.
+     *
+     * <p>O {@code Clock} do sistema e injetado aqui — o unico lugar do app que
+     * conhece o relogio real. Os testes passam um {@code Clock.fixed}.
+     *
+     * @return ViewModel pronto para a tela
+     */
+    public DeckListViewModel deckListViewModel() {
+        return new DeckListViewModel(deckRepository(), java.time.Clock.systemDefaultZone());
     }
 
     /**

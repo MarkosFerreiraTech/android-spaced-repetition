@@ -3,10 +3,15 @@ package com.markosferreira.spacedrepetition.architecture;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 
 import org.junit.jupiter.api.DisplayName;
 
@@ -166,6 +171,33 @@ class ArchitectureTest {
                     .should().dependOnClassesThat()
                     .resideInAPackage(RAIZ + ".data.local..")
                     .because("a tela deve depender de casos de uso, nao de DAOs ou entidades");
+
+    /**
+     * Nenhum ViewModel instancia repositorio ou DAO diretamente (#20).
+     *
+     * <p>E a definicao de pronto da issue de MVVM: dependencia entra pelo
+     * construtor, nunca por {@code new}. Sem esta regra, a primeira pressa
+     * transforma o ViewModel em composition root e os testes passam a precisar
+     * de banco real.
+     */
+    @ArchTest
+    static final ArchRule VIEWMODEL_NAO_INSTANCIA_REPOSITORIO =
+            classes()
+                    .that().haveSimpleNameEndingWith("ViewModel")
+                    .should(new ArchCondition<JavaClass>("nao instanciar repositorio ou DAO") {
+                        @Override
+                        public void check(final JavaClass item, final ConditionEvents events) {
+                            for (final JavaConstructorCall call : item.getConstructorCallsFromSelf()) {
+                                final String alvo = call.getTarget().getOwner().getName();
+                                if (alvo.endsWith("Repository") || alvo.endsWith("Dao")) {
+                                    events.add(SimpleConditionEvent.violated(item,
+                                            item.getName() + " instancia " + alvo
+                                                    + " em vez de receber por construtor"));
+                                }
+                            }
+                        }
+                    })
+                    .because("dependencias de ViewModel entram pelo construtor, nao por new");
 
     /**
      * Guarda de sanidade: a analise precisa enxergar o projeto.
