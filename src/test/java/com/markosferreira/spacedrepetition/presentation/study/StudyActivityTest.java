@@ -56,7 +56,7 @@ public final class StudyActivityTest {
                 Robolectric.buildActivity(StudyActivity.class).create();
 
         // Sem extras a tela nao pode permanecer aberta com estado invalido.
-        assertThat(controller.get().isFinishing()).isTrue();
+        org.junit.Assert.assertTrue(controller.get().isFinishing());
 
         controller.destroy();
     }
@@ -66,12 +66,12 @@ public final class StudyActivityTest {
         final OptionAdapter adapter = new OptionAdapter(index -> { });
         adapter.submit(java.util.List.of("S3", "EBS", "EFS"));
 
-        assertThat(adapter.getItemCount()).isEqualTo(3);
+        org.junit.Assert.assertEquals(3, adapter.getItemCount());
 
         adapter.select(1);
         adapter.reveal(0);
         // Sem excecao: os quatro estados visuais sao desenhaveis.
-        assertThat(adapter.getItemCount()).isEqualTo(3);
+        org.junit.Assert.assertEquals(3, adapter.getItemCount());
     }
 
     @Test
@@ -84,7 +84,7 @@ public final class StudyActivityTest {
 
         final RecyclerView options = controller.get().findViewById(R.id.options_container);
         assertThat(options.getLayoutManager()).isNotNull();
-        assertThat(options.getVisibility()).isEqualTo(View.VISIBLE);
+        org.junit.Assert.assertEquals(View.VISIBLE, options.getVisibility());
 
         controller.pause().stop().destroy();
     }
