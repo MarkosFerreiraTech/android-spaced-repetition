@@ -1,0 +1,22 @@
+# CODEOWNERS
+#
+# Revisão obrigatória por área. O padrão mais específico vence.
+# Referência: https://docs.github.com/repos/github/creating-cloning-and-archiving-repositories/about-code-owners
+
+# Padrão do repositório
+*                                   @MarkosFerreiraTech
+
+# Núcleo de negócio: algoritmo de repetição espaçada e casos de uso.
+# Mudanças aqui alteram o comportamento do produto, não a infraestrutura.
+/src/main/java/com/markosferreira/spacedrepetition/domain/     @MarkosFerreiraTech
+
+# Esquema de persistência: migração errada corrompe dados do estudante.
+/src/main/java/com/markosferreira/spacedrepetition/data/local/  @MarkosFerreiraTech
+
+# Pipeline e análise estática: é o portão de qualidade.
+/.github/workflows/                 @MarkosFerreiraTech
+/build.gradle                       @MarkosFerreiraTech
+/config/                            @MarkosFerreiraTech
+
+# Documentação normativa: requisitos, casos de uso e ADRs.
+/docs/                              @MarkosFerreiraTech
