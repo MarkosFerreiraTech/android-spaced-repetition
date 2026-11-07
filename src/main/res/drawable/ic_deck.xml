@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icone de baralho: camadas empilhadas. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorPrimary">
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M12,3L2,8l10,5 10,-5 -10,-5zM2,12l10,5 10,-5v2l-10,5 -10,-5v-2zM2,17l10,5 10,-5v2l-10,5 -10,-5v-2z" />
+</vector>

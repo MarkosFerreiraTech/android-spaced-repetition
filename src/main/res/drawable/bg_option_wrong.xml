@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fundo da alternativa errada escolhida pelo usuario apos o feedback. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#FBE3E1" />
+    <stroke
+        android:width="2dp"
+        android:color="@color/feedback_wrong" />
+    <corners android:radius="@dimen/card_corner" />
+</shape>

@@ -1,0 +1,192 @@
+package com.markosferreira.spacedrepetition.presentation.study;
+
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+
+import com.markosferreira.spacedrepetition.CerebroApplication;
+import com.markosferreira.spacedrepetition.R;
+import com.markosferreira.spacedrepetition.databinding.ActivityStudyBinding;
+import com.markosferreira.spacedrepetition.domain.model.StudyMode;
+
+/**
+ * Sessao de estudo (RF13 a RF18).
+ *
+ * <p>Casca fina: apenas liga o adaptador de alternativas e os botoes ao
+ * ViewModel. Toda a regra — selecionar, confirmar, contar, encerrar — vive em
+ * {@link StudyViewModel} e e testada sem Android.
+ */
+public final class StudyActivity extends AppCompatActivity {
+
+    private static final String EXTRA_DECK_ID = "deck_id";
+    private static final String EXTRA_MODE = "mode";
+
+    private ActivityStudyBinding binding;
+    private StudyViewModel viewModel;
+    private OptionAdapter optionAdapter;
+    private StudyMode mode;
+    private String deckId;
+    private java.util.List<String> lastOptions = new java.util.ArrayList<>();
+
+    /**
+     * Cria o intent da sessao.
+     *
+     * @param context contexto
+     * @param deckId baralho
+     * @param mode modo escolhido
+     * @return intent pronto
+     */
+    public static Intent intentFor(final Context context, final String deckId,
+                                   final StudyMode mode) {
+        final Intent intent = new Intent(context, StudyActivity.class);
+        intent.putExtra(EXTRA_DECK_ID, deckId);
+        intent.putExtra(EXTRA_MODE, mode.name());
+        return intent;
+    }
+
+    @Override
+    protected void onCreate(@Nullable final Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        binding = ActivityStudyBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        deckId = getIntent().getStringExtra(EXTRA_DECK_ID);
+        final String modeName = getIntent().getStringExtra(EXTRA_MODE);
+        if (deckId == null || modeName == null) {
+            finish();
+            return;
+        }
+        mode = StudyMode.valueOf(modeName);
+
+        viewModel = ((CerebroApplication) getApplication()).container().studyViewModel();
+
+        optionAdapter = new OptionAdapter(viewModel::selectOption);
+        binding.optionsContainer.setLayoutManager(new LinearLayoutManager(this));
+        binding.optionsContainer.setAdapter(optionAdapter);
+
+        binding.toolbar.setNavigationOnClickListener(view -> finish());
+        binding.buttonPrimary.setOnClickListener(view -> onPrimaryAction());
+        binding.checkboxFlagged.setOnCheckedChangeListener(
+                (button, checked) -> viewModel.setFlagged(checked));
+
+        viewModel.state().observe(this, this::render);
+
+        if (savedInstanceState == null) {
+            viewModel.start(deckId, mode);
+        }
+    }
+
+    /**
+     * O botao unico muda de papel: confirma a resposta, avanca, ou encerra.
+     */
+    private void onPrimaryAction() {
+        final StudyState current = viewModel.state().getValue();
+        if (current == null) {
+            return;
+        }
+        switch (current.phase()) {
+            case ANSWERING:
+                viewModel.confirm();
+                break;
+            case FEEDBACK:
+                viewModel.next();
+                break;
+            case FINISHED:
+                finish();
+                break;
+            default:
+                finish();
+                break;
+        }
+    }
+
+    private void render(final StudyState state) {
+        binding.sessionProgress.setMax(Math.max(1, state.total()));
+        binding.sessionProgress.setProgress(state.position());
+
+        switch (state.phase()) {
+            case ANSWERING:
+            case FEEDBACK:
+                renderQuestion(state);
+                break;
+            case FINISHED:
+                renderSummary(state);
+                break;
+            default:
+                // Sem questoes: volta para a escolha de modo.
+                finish();
+                break;
+        }
+    }
+
+    private void renderQuestion(final StudyState state) {
+        final boolean answering = state.phase() == StudyState.Phase.ANSWERING;
+
+        binding.questionText.setText(state.card().question());
+        binding.progressLabel.setText(getString(R.string.study_progress,
+                state.position(), state.total()));
+
+        if (optionAdapter.getItemCount() != state.options().size()
+                || !state.options().equals(lastOptions)) {
+            optionAdapter.submit(state.options());
+            lastOptions = state.options();
+        }
+        if (state.hasSelection()) {
+            optionAdapter.select(state.selectedIndex());
+        }
+
+        binding.checkboxFlagged.setChecked(state.flagged());
+        binding.checkboxFlagged.setEnabled(answering);
+        binding.buttonPrimary.setText(answering
+                ? R.string.study_confirm : R.string.study_next);
+        binding.buttonPrimary.setEnabled(!answering || state.hasSelection());
+
+        if (answering) {
+            binding.feedbackCard.setVisibility(View.GONE);
+            binding.optionsContainer.setVisibility(View.VISIBLE);
+            return;
+        }
+
+        optionAdapter.reveal(state.card().correctIndex());
+        binding.feedbackCard.setVisibility(View.VISIBLE);
+        binding.feedbackTitle.setText(state.correct()
+                ? R.string.study_feedback_correct : R.string.study_feedback_wrong);
+        binding.feedbackTitle.setTextColor(getColor(state.correct()
+                ? R.color.feedback_correct : R.color.feedback_wrong));
+        binding.feedbackCorrectAnswer.setText(getString(
+                R.string.study_feedback_correct_is, state.card().correctLetter()));
+
+        final String explanation = state.card().explanation();
+        if (explanation == null || explanation.isEmpty()) {
+            binding.feedbackExplanation.setVisibility(View.GONE);
+        } else {
+            binding.feedbackExplanation.setVisibility(View.VISIBLE);
+            binding.feedbackExplanation.setText(explanation);
+        }
+    }
+
+    private void renderSummary(final StudyState state) {
+        binding.optionsContainer.setVisibility(View.GONE);
+        binding.feedbackCard.setVisibility(View.VISIBLE);
+        binding.questionText.setText(R.string.study_summary_title);
+        binding.progressLabel.setText(getString(R.string.study_summary_body,
+                state.correctCount(), state.wrongCount(), state.flaggedCount()));
+
+        binding.feedbackTitle.setText(getString(R.string.study_summary_accuracy,
+                state.accuracyText()));
+        binding.feedbackTitle.setTextColor(getColor(R.color.brand_primary));
+        binding.feedbackCorrectAnswer.setText(getString(R.string.study_summary_body,
+                state.correctCount(), state.wrongCount(), state.flaggedCount()));
+        binding.feedbackExplanation.setVisibility(View.VISIBLE);
+        binding.feedbackExplanation.setText(R.string.study_back_to_decks);
+
+        binding.checkboxFlagged.setVisibility(View.GONE);
+        binding.buttonPrimary.setText(R.string.study_back_to_decks);
+        binding.buttonPrimary.setEnabled(true);
+    }
+}
