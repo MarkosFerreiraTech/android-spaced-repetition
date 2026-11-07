@@ -43,8 +43,15 @@ class AnswerQuestionUseCaseTest {
     @Test
     @DisplayName("acerto grava log com rating GOOD e reagenda")
     void correctAnswerRecordsLog() {
-        final AnswerQuestionUseCase.AnswerResult result = useCase.execute(
-                card, "session-1", 0, false, 12_000L, 20_000L, NOW);
+        final AnswerQuestionUseCase.AnswerResult result = useCase.execute(AnswerQuestionUseCase.AnswerCommand.builder()
+                .card(card)
+                .sessionId("session-1")
+                .selectedIndex(0)
+                .flagged(false)
+                .elapsedMillis(12_000L)
+                .averageMillis(20_000L)
+                .now(NOW)
+                .build());
 
         assertThat(result.correct()).isTrue();
         assertThat(result.rating()).isEqualTo(Rating.GOOD);
@@ -61,8 +68,15 @@ class AnswerQuestionUseCaseTest {
     void wrongAnswerRecordsAgain() {
         final SchedulingInfo before = card.scheduling();
 
-        final AnswerQuestionUseCase.AnswerResult result = useCase.execute(
-                card, "session-1", 2, false, 30_000L, 20_000L, NOW);
+        final AnswerQuestionUseCase.AnswerResult result = useCase.execute(AnswerQuestionUseCase.AnswerCommand.builder()
+                .card(card)
+                .sessionId("session-1")
+                .selectedIndex(2)
+                .flagged(false)
+                .elapsedMillis(30_000L)
+                .averageMillis(20_000L)
+                .now(NOW)
+                .build());
 
         assertThat(result.correct()).isFalse();
         assertThat(result.rating()).isEqualTo(Rating.AGAIN);
@@ -74,8 +88,15 @@ class AnswerQuestionUseCaseTest {
     @Test
     @DisplayName("acerto marcado como duvida grava HARD e preserva o flag")
     void flaggedAnswerRecordsHard() {
-        final AnswerQuestionUseCase.AnswerResult result = useCase.execute(
-                card, "session-1", 0, true, 8_000L, 20_000L, NOW);
+        final AnswerQuestionUseCase.AnswerResult result = useCase.execute(AnswerQuestionUseCase.AnswerCommand.builder()
+                .card(card)
+                .sessionId("session-1")
+                .selectedIndex(0)
+                .flagged(true)
+                .elapsedMillis(8_000L)
+                .averageMillis(20_000L)
+                .now(NOW)
+                .build());
 
         assertThat(result.rating()).isEqualTo(Rating.HARD);
         assertThat(reviews.logs().get(0).flagged()).isTrue();
@@ -84,8 +105,15 @@ class AnswerQuestionUseCaseTest {
     @Test
     @DisplayName("acerto muito rapido grava EASY")
     void fastAnswerRecordsEasy() {
-        final AnswerQuestionUseCase.AnswerResult result = useCase.execute(
-                card, "session-1", 0, false, 1_500L, 20_000L, NOW);
+        final AnswerQuestionUseCase.AnswerResult result = useCase.execute(AnswerQuestionUseCase.AnswerCommand.builder()
+                .card(card)
+                .sessionId("session-1")
+                .selectedIndex(0)
+                .flagged(false)
+                .elapsedMillis(1_500L)
+                .averageMillis(20_000L)
+                .now(NOW)
+                .build());
 
         assertThat(result.rating()).isEqualTo(Rating.EASY);
     }
@@ -93,19 +121,40 @@ class AnswerQuestionUseCaseTest {
     @Test
     @DisplayName("rejeita questao nula")
     void rejectsNullCard() {
-        assertThatThrownBy(() -> useCase.execute(
-                null, "session-1", 0, false, 1_000L, 20_000L, NOW))
+        assertThatThrownBy(() -> useCase.execute(AnswerQuestionUseCase.AnswerCommand.builder()
+                .card(null)
+                .sessionId("session-1")
+                .selectedIndex(0)
+                .flagged(false)
+                .elapsedMillis(1_000L)
+                .averageMillis(20_000L)
+                .now(NOW)
+                .build()))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     @DisplayName("rejeita alternativa fora da faixa")
     void rejectsOutOfRangeOption() {
-        assertThatThrownBy(() -> useCase.execute(
-                card, "session-1", 9, false, 1_000L, 20_000L, NOW))
+        assertThatThrownBy(() -> useCase.execute(AnswerQuestionUseCase.AnswerCommand.builder()
+                .card(card)
+                .sessionId("session-1")
+                .selectedIndex(9)
+                .flagged(false)
+                .elapsedMillis(1_000L)
+                .averageMillis(20_000L)
+                .now(NOW)
+                .build()))
                 .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> useCase.execute(
-                card, "session-1", -1, false, 1_000L, 20_000L, NOW))
+        assertThatThrownBy(() -> useCase.execute(AnswerQuestionUseCase.AnswerCommand.builder()
+                .card(card)
+                .sessionId("session-1")
+                .selectedIndex(-1)
+                .flagged(false)
+                .elapsedMillis(1_000L)
+                .averageMillis(20_000L)
+                .now(NOW)
+                .build()))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 }

@@ -7,6 +7,8 @@ import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Transaction;
 
+import com.markosferreira.spacedrepetition.domain.model.SchedulingInfo;
+
 import java.util.List;
 
 /**
@@ -55,20 +57,17 @@ public interface CardDao {
     /**
      * Atualiza o estado de agendamento de uma questao.
      *
-     * @param cardId identificador
-     * @param stability estabilidade
-     * @param difficulty dificuldade
-     * @param dueAt vencimento em epoch millis
-     * @param lastReviewAt ultima revisao em epoch millis
-     * @param reps repeticoes
-     * @param lapses lapsos
-     * @param state estado (ordinal)
+     * <p>Os valores vem agrupados em {@link SchedulingUpdate} para manter a
+     * assinatura dentro do limite de parametros do projeto.
+     *
+     * @param cardId identificador da questao
+     * @param update  novo estado de agendamento
      */
-    @Query("UPDATE cards SET stability = :stability, difficulty = :difficulty, "
-            + "due_at = :dueAt, last_review_at = :lastReviewAt, reps = :reps, "
-            + "lapses = :lapses, state = :state WHERE id = :cardId")
-    void updateScheduling(String cardId, double stability, double difficulty,
-                          long dueAt, long lastReviewAt, int reps, int lapses, int state);
+    @Query("UPDATE cards SET stability = :#{#update.stability}, "
+            + "difficulty = :#{#update.difficulty}, due_at = :#{#update.dueAt}, "
+            + "last_review_at = :#{#update.lastReviewAt}, reps = :#{#update.reps}, "
+            + "lapses = :#{#update.lapses}, state = :#{#update.state} WHERE id = :cardId")
+    void updateScheduling(String cardId, SchedulingUpdate update);
 
     /**
      * Data media de resposta (ms) de uma questao, base para o rating EASY.
@@ -102,4 +101,42 @@ public interface CardDao {
             + "  AND rl.reviewed_at = (SELECT MAX(r2.reviewed_at) FROM review_logs r2 "
             + "                         WHERE r2.card_id = rl.card_id))")
     List<CardEntity> findWrongOrFlaggedByDeck(String deckId);
+
+    /**
+     * Valores de agendamento de uma questao, agrupados para a query de UPDATE.
+     */
+    final class SchedulingUpdate {
+
+        private SchedulingUpdate() {
+            // Use SchedulingUpdate.from(...)
+        }
+
+        public double stability;
+        public double difficulty;
+        public long dueAt;
+        public long lastReviewAt;
+        public int reps;
+        public int lapses;
+        public int state;
+
+        /**
+         * Cria os valores de agendamento.
+         *
+         * @param scheduling estado calculado pelo dominio
+         * @return valores prontos para a query
+         */
+        public static SchedulingUpdate from(final SchedulingInfo scheduling,
+                                            final java.util.function.LongSupplier dueAt,
+                                            final java.util.function.LongSupplier lastReview) {
+            final SchedulingUpdate update = new SchedulingUpdate();
+            update.stability = scheduling.stability();
+            update.difficulty = scheduling.difficulty();
+            update.dueAt = dueAt.getAsLong();
+            update.lastReviewAt = lastReview.getAsLong();
+            update.reps = scheduling.repetitions();
+            update.lapses = scheduling.lapses();
+            update.state = scheduling.state().ordinal();
+            return update;
+        }
+    }
 }

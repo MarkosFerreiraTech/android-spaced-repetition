@@ -82,26 +82,12 @@ public class CardEntity {
     @ColumnInfo(name = "state")
     public int state;
 
-    public CardEntity(@NonNull final String id, @NonNull final String deckId,
-                      @NonNull final String question, @NonNull final String optionsJson,
-                      final int correctIndex, @Nullable final String explanation,
-                      @NonNull final String contentHash, final double stability,
-                      final double difficulty, @Nullable final Long dueAt,
-                      @Nullable final Long lastReviewAt, final int repetitions,
-                      final int lapses, final int state) {
-        this.id = id;
-        this.deckId = deckId;
-        this.question = question;
-        this.optionsJson = optionsJson;
-        this.correctIndex = correctIndex;
-        this.explanation = explanation;
-        this.contentHash = contentHash;
-        this.stability = stability;
-        this.difficulty = difficulty;
-        this.dueAt = dueAt;
-        this.lastReviewAt = lastReviewAt;
-        this.repetitions = repetitions;
-        this.lapses = lapses;
-        this.state = state;
+    /** Construtor vazio exigido pelo Room. As colunas sao atribuidas por campo. */
+    public CardEntity() {
+        this.id = "";
+        this.deckId = "";
+        this.question = "";
+        this.optionsJson = "";
+        this.contentHash = "";
     }
 }

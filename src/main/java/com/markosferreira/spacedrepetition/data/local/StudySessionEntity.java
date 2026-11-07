@@ -51,17 +51,10 @@ public class StudySessionEntity {
     @ColumnInfo(name = "answered_count")
     public int answeredCount;
 
-    public StudySessionEntity(@NonNull final String id, @NonNull final String deckId,
-                              final int mode, final int status, final long startedAt,
-                              @Nullable final Long finishedAt, @NonNull final String cardIds,
-                              final int answeredCount) {
-        this.id = id;
-        this.deckId = deckId;
-        this.mode = mode;
-        this.status = status;
-        this.startedAt = startedAt;
-        this.finishedAt = finishedAt;
-        this.cardIds = cardIds;
-        this.answeredCount = answeredCount;
+    /** Construtor vazio exigido pelo Room. As colunas sao atribuidas por campo. */
+    public StudySessionEntity() {
+        this.id = "";
+        this.deckId = "";
+        this.cardIds = "";
     }
 }
