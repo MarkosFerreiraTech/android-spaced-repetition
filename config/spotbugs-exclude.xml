@@ -71,6 +71,15 @@
         <Class name="com.markosferreira.spacedrepetition.data.repository.Room*Repository"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
+    <!--
+        O compilador gera classes sinteticas (lambdas) no mesmo arquivo-fonte;
+        o filtro acima, por nome exato, nao as alcanca. O regex cobre a familia
+        inteira de adaptadores de dados, inclusive as sinteticas.
+    -->
+    <Match>
+        <Class name="~com\\.markosferreira\\.spacedrepetition\\.data\\..*Repository.*"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
 
     <!--
         Constantes de agendamento do modelo FSRS possuem limites intencionais
