@@ -16,12 +16,42 @@ import org.junit.jupiter.api.DisplayName;
  * <p>Cada regra aqui e um contrato que o ADR fixa e que o compilador nao
  * consegue garantir sozinho. Se alguem importar {@code android.content.Context}
  * dentro do dominio, o build quebra apontando a classe e o pacote da violacao.
+ *
+ * <p><b>Precaucao com os padroes de pacote.</b> Os padroes usados aqui sao
+ * totalmente qualificados ({@code com.markosferreira...data..}) e nunca
+ * genericos como {@code ..data..}. O motivo e concreto: o padrao {@code ..data..}
+ * tambem casa com {@code org.assertj.core.data}, e a regra passaria a acusar
+ * codigo de biblioteca em vez do codigo do projeto.
  */
 @DisplayName("Arquitetura em camadas")
 @AnalyzeClasses(
         packages = "com.markosferreira.spacedrepetition",
-        importOptions = {ImportOption.DoNotIncludeTests.class})
+        importOptions = {ArchitectureTest.ExcluirClassesDeTeste.class})
 class ArchitectureTest {
+
+    /** Raiz do projeto. */
+    private static final String RAIZ = "com.markosferreira.spacedrepetition";
+
+    /**
+     * Exclui o bytecode de teste da analise.
+     *
+     * <p>O {@code ImportOption.DoNotIncludeTests} do ArchUnit reconhece os
+     * caminhos do Gradle Java ({@code /test-classes/}), mas o AGP compila testes
+     * unitarios em {@code build/intermediates/javac/debugUnitTest/...}. Sem este
+     * filtro, os dublês de teste ({@code InMemoryCardRepository}) e as classes
+     * internas dos testes sao analisados como se fossem codigo de producao e
+     * disparam violacoes falsas.
+     */
+    static final class ExcluirClassesDeTeste implements ImportOption {
+
+        @Override
+        public boolean includes(final com.tngtech.archunit.core.domain.JavaClassDetails details) {
+            final String caminho = details.getSourceUri().toString();
+            return !caminho.contains("UnitTest")
+                    && !caminho.contains("test-classes")
+                    && !caminho.contains("/test/");
+        }
+    }
 
     /**
      * O dominio e o nucleo do produto: nao pode conhecer o Android.
@@ -32,10 +62,10 @@ class ArchitectureTest {
     @ArchTest
     static final ArchRule DOMINIO_NAO_DEPENDE_DE_ANDROID =
             noClasses()
-                    .that().resideInAPackage("..domain..")
+                    .that().resideInAPackage(RAIZ + ".domain..")
                     .should().dependOnClassesThat()
                     .resideInAnyPackage("android..", "androidx..", "com.google.android..")
-                    .because("o dominio deve rodar em JVM pura e ignore o framework");
+                    .because("o dominio deve rodar em JVM pura e ignorar o framework");
 
     /**
      * O dominio nao pode depender das camadas externas.
@@ -46,9 +76,12 @@ class ArchitectureTest {
     @ArchTest
     static final ArchRule DOMINIO_NAO_DEPENDE_DE_DADOS_UI_OU_DI =
             noClasses()
-                    .that().resideInAPackage("..domain..")
+                    .that().resideInAPackage(RAIZ + ".domain..")
                     .should().dependOnClassesThat()
-                    .resideInAnyPackage("..data..", "..presentation..", "..di..")
+                    .resideInAnyPackage(
+                            RAIZ + ".data..",
+                            RAIZ + ".presentation..",
+                            RAIZ + ".di..")
                     .because("as dependencias devem apontar para o dominio, nunca a partir dele");
 
     /**
@@ -60,56 +93,52 @@ class ArchitectureTest {
     @ArchTest
     static final ArchRule DADOS_NAO_DEPENDEM_DE_APRESENTACAO =
             noClasses()
-                    .that().resideInAPackage("..data..")
+                    .that().resideInAPackage(RAIZ + ".data..")
                     .should().dependOnClassesThat()
-                    .resideInAPackage("..presentation..")
+                    .resideInAPackage(RAIZ + ".presentation..")
                     .because("a camada de dados nao deve conhecer telas");
+
+    /**
+     * Toda implementacao de repositorio vive na camada de dados.
+     *
+     * <p>Nao exige especificamente {@code data.repository} porque as
+     * preferencias cifradas moram legitimamente em {@code data.prefs}: o
+     * contrato e "camada de dados", nao uma pasta unica.
+     */
+    @ArchTest
+    static final ArchRule ADAPTADORES_DE_REPOSITORIO_FICAM_NA_CAMADA_DE_DADOS =
+            classes()
+                    .that().haveSimpleNameEndingWith("Repository")
+                    .and().areNotInterfaces()
+                    .should().resideInAPackage(RAIZ + ".data..")
+                    .because("implementacoes de repositorio pertencem a camada de dados");
 
     /**
      * As portas do dominio sao interfaces.
      *
-     * <p>Se uma porta virar classe abstrata com estado, a inversao de
-     * dependencia perde o sentido e os dublês de teste ficam presos a heranca.
+     * <p>O filtro por nome e proposital: as classes aninhadas das portas
+     * ({@code UpsertResult}, {@code Accuracy}, {@code DeckAccuracy}) vivem no
+     * mesmo pacote e nao sao portas.
      */
     @ArchTest
     static final ArchRule PORTAS_SAO_INTERFACES =
             classes()
-                    .that().resideInAPackage("..domain.port..")
-                    // O filtro por nome completo e proposital: as classes
-                    // aninhadas das portas (UpsertResult, Accuracy, LineError,
-                    // CsvReadException) vivem no mesmo pacote e NAO sao
-                    // portas. O sufixo nao as alcanca porque o nome completo
-                    // de uma classe aninhada contem '$'.
+                    .that().resideInAPackage(RAIZ + ".domain.port..")
                     .and().haveNameMatching(".*(Repository|Parser|Scheduler)")
                     .should().beInterfaces()
                     .because("portas sao contratos, nao implementacoes");
-
-    /**
-     * Os adaptadores de repositorio vivem em {@code data.repository}.
-     *
-     * <p>Mantem a simetria: toda porta {@code *Repository} tem sua
-     * implementacao concreta em um unico lugar previsivel.
-     */
-    @ArchTest
-    static final ArchRule ADAPTADORES_DE_REPOSITORIO_FICAM_EM_DATA_REPOSITORY =
-            classes()
-                    .that().haveSimpleNameEndingWith("Repository")
-                    .and().areNotInterfaces()
-                    .and().resideOutsideOfPackage("..di..")
-                    .should().resideInAPackage("..data.repository..")
-                    .because("implementacoes de repositorio pertencem a camada de dados");
 
     /**
      * Entidades do Room ficam restritas a camada de dados.
      *
      * <p>O sufixo {@code Entity} marca o modelo de persistencia: se uma delas
      * aparecer no dominio, o modelo de negocio passa a carregar anotacoes de
-     * banco (violacao do principio de Entities separadas dos DTOs).
+     * banco (violacao da separacao entre Entities e DTOs).
      */
     @ArchTest
     static final ArchRule ENTIDADES_DE_PERSISTENCIA_NAO_VAZAM_PARA_O_DOMINIO =
             noClasses()
-                    .that().resideInAPackage("..domain..")
+                    .that().resideInAPackage(RAIZ + ".domain..")
                     .should().dependOnClassesThat()
                     .haveSimpleNameEndingWith("Entity")
                     .because("entidades do Room nao podem vazar para o dominio");
@@ -124,7 +153,7 @@ class ArchitectureTest {
     static final ArchRule CASOS_DE_USO_FICAM_EM_DOMAIN_USECASE =
             classes()
                     .that().haveSimpleNameEndingWith("UseCase")
-                    .should().resideInAPackage("..domain.usecase..")
+                    .should().resideInAPackage(RAIZ + ".domain.usecase..")
                     .because("casos de uso pertencem ao nucleo de negocio");
 
     /**
@@ -137,6 +166,44 @@ class ArchitectureTest {
     static final ArchRule FSRS_ISOLADO_NO_DOMINIO =
             classes()
                     .that().haveSimpleNameStartingWith("Fsrs")
-                    .should().resideInAPackage("..domain.fsrs..")
+                    .should().resideInAPackage(RAIZ + ".domain.fsrs..")
                     .because("o algoritmo deve ser substituivel sem afetar o resto");
+
+    /**
+     * A injecao de dependencia e o unico ponto que conhece as duas pontas.
+     *
+     * <p>O container monta o grafo ligando portas a adaptadores; nenhuma outra
+     * classe deveria precisar dessa visao simultanea.
+     */
+    @ArchTest
+    static final ArchRule APRESENTACAO_NAO_CONHECE_IMPLEMENTACOES_DE_DADOS =
+            noClasses()
+                    .that().resideInAPackage(RAIZ + ".presentation..")
+                    .and().haveSimpleNameNotEndingWith("Application")
+                    .should().dependOnClassesThat()
+                    .resideInAPackage(RAIZ + ".data.local..")
+                    .because("a tela deve depender de casos de uso, nao de DAOs ou entidades");
+
+    /**
+     * Nenhuma classe do projeto pode depender de uma classe de teste.
+     */
+    @ArchTest
+    static final ArchRule SEM_DEPENDENCIA_DE_CODIGO_DE_TESTE =
+            noClasses()
+                    .should().dependOnClassesThat()
+                    .resideInAPackage(RAIZ + ".fakes..")
+                    .because("dublês de teste nao podem vazar para o codigo de producao");
+
+    /**
+     * Guarda de sanidade: a analise precisa enxergar o projeto.
+     *
+     * <p>Sem isto, um filtro de importacao errado faria todas as regras
+     * passarem por vacuidade — o pior tipo de falso verde.
+     */
+    @ArchTest
+    static final ArchRule ANALISE_ENXERGA_O_DOMINIO =
+            classes()
+                    .that().resideInAPackage(RAIZ + ".domain..")
+                    .should().bePublic()
+                    .because("o dominio e publico; se a varredura vier vazia, o filtro esta errado");
 }
