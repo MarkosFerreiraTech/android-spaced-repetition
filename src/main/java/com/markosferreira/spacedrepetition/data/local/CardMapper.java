@@ -185,10 +185,16 @@ public final class CardMapper {
     public static StudySession toDomain(final StudySessionEntity entity) {
         final List<String> ids = entity.cardIds.isEmpty()
                 ? new ArrayList<>() : Arrays.asList(entity.cardIds.split(","));
-        return new StudySession(entity.id, entity.deckId,
-                StudyMode.values()[entity.mode], SessionStatus.values()[entity.status],
-                Instant.ofEpochMilli(entity.startedAt), toInstant(entity.finishedAt),
-                ids, entity.answeredCount);
+        return StudySession.builder()
+                .id(entity.id)
+                .deckId(entity.deckId)
+                .mode(StudyMode.values()[entity.mode])
+                .status(SessionStatus.values()[entity.status])
+                .startedAt(Instant.ofEpochMilli(entity.startedAt))
+                .finishedAt(toInstant(entity.finishedAt))
+                .cardIds(ids)
+                .answeredCount(entity.answeredCount)
+                .build();
     }
 
     /**
