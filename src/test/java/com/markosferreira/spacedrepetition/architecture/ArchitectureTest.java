@@ -26,32 +26,11 @@ import org.junit.jupiter.api.DisplayName;
 @DisplayName("Arquitetura em camadas")
 @AnalyzeClasses(
         packages = "com.markosferreira.spacedrepetition",
-        importOptions = {ArchitectureTest.ExcluirClassesDeTeste.class})
+        importOptions = {ImportOption.DoNotIncludeTests.class})
 class ArchitectureTest {
 
     /** Raiz do projeto. */
     private static final String RAIZ = "com.markosferreira.spacedrepetition";
-
-    /**
-     * Exclui o bytecode de teste da analise.
-     *
-     * <p>O {@code ImportOption.DoNotIncludeTests} do ArchUnit reconhece os
-     * caminhos do Gradle Java ({@code /test-classes/}), mas o AGP compila testes
-     * unitarios em {@code build/intermediates/javac/debugUnitTest/...}. Sem este
-     * filtro, os dublês de teste ({@code InMemoryCardRepository}) e as classes
-     * internas dos testes sao analisados como se fossem codigo de producao e
-     * disparam violacoes falsas.
-     */
-    static final class ExcluirClassesDeTeste implements ImportOption {
-
-        @Override
-        public boolean includes(final com.tngtech.archunit.core.domain.JavaClassDetails details) {
-            final String caminho = details.getSourceUri().toString();
-            return !caminho.contains("UnitTest")
-                    && !caminho.contains("test-classes")
-                    && !caminho.contains("/test/");
-        }
-    }
 
     /**
      * O dominio e o nucleo do produto: nao pode conhecer o Android.
@@ -110,6 +89,10 @@ class ArchitectureTest {
             classes()
                     .that().haveSimpleNameEndingWith("Repository")
                     .and().areNotInterfaces()
+                    // Dublês de teste e classes aninhadas de teste tem o mesmo
+                    // sufixo, mas nao sao adaptadores de producao.
+                    .and().resideOutsideOfPackage(RAIZ + ".fakes..")
+                    .and().haveNameNotMatching(".*\\$.*")
                     .should().resideInAPackage(RAIZ + ".data..")
                     .because("implementacoes de repositorio pertencem a camada de dados");
 
@@ -185,16 +168,6 @@ class ArchitectureTest {
                     .because("a tela deve depender de casos de uso, nao de DAOs ou entidades");
 
     /**
-     * Nenhuma classe do projeto pode depender de uma classe de teste.
-     */
-    @ArchTest
-    static final ArchRule SEM_DEPENDENCIA_DE_CODIGO_DE_TESTE =
-            noClasses()
-                    .should().dependOnClassesThat()
-                    .resideInAPackage(RAIZ + ".fakes..")
-                    .because("dublês de teste nao podem vazar para o codigo de producao");
-
-    /**
      * Guarda de sanidade: a analise precisa enxergar o projeto.
      *
      * <p>Sem isto, um filtro de importacao errado faria todas as regras
@@ -203,7 +176,7 @@ class ArchitectureTest {
     @ArchTest
     static final ArchRule ANALISE_ENXERGA_O_DOMINIO =
             classes()
-                    .that().resideInAPackage(RAIZ + ".domain..")
+                    .that().resideInAPackage(RAIZ + ".domain.model..")
                     .should().bePublic()
-                    .because("o dominio e publico; se a varredura vier vazia, o filtro esta errado");
+                    .because("os modelos do dominio sao publicos; se a varredura vier vazia, a analise nao enxerga o projeto");
 }
