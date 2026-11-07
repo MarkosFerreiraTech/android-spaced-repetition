@@ -146,7 +146,36 @@ jobs:
           retention-days: 14
 
       - name: SpotBugs
-        run: ./gradlew spotbugsMain --stacktrace
+        run: |
+          set +e
+          ./gradlew spotbugsMain --stacktrace 2>&1 | tee /tmp/spotbugs.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            # Extrai os achados do relatorio XML e o bloco de erro do Gradle
+            if [ -f build/reports/spotbugs/main.xml ]; then
+              python3 - <<'SB'
+          import xml.etree.ElementTree as ET
+          root = ET.parse("build/reports/spotbugs/main.xml").getroot()
+          count = 0
+          for bug in root.iter("BugInstance"):
+              cls = bug.find("Class")
+              src = bug.find(".//SourceLine")
+              file_name = src.get("sourcefile") if src is not None else (cls.get("classname") if cls is not None else "?")
+              line = src.get("start") if src is not None else "1"
+              print(f"::error file=src/main/java/{file_name},line={line}::[{bug.get('type')}] {bug.get('category')} ({bug.get('priority')})")
+              count += 1
+          print(f"::error::SpotBugs encontrou {count} achado(s).")
+          SB
+            else
+              grep -vE '^\s+at [a-zA-Z0-9_.]+\(' /tmp/spotbugs.log \
+                | grep -A8 -E 'What went wrong|Execution failed|error:' \
+                | head -20 \
+                | while IFS= read -r line; do
+                    echo "::error::$(printf '%s' "$line" | tr -d '\r' | sed 's/::/:/g' | cut -c1-300)"
+                  done
+            fi
+          fi
+          exit $status
 
   security:
     name: Varredura de seguranca
