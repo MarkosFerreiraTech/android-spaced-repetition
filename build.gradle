@@ -121,6 +121,8 @@ dependencies {
     testImplementation libs.assertj.core
     testImplementation libs.robolectric
     testImplementation libs.archunit.junit5
+    // InstantTaskExecutorRule: permite observar LiveData na thread de teste
+    testImplementation libs.core.testing
     testImplementation libs.androidx.test.core
     testImplementation libs.androidx.test.ext.junit
     testImplementation libs.room.testing

@@ -6,6 +6,7 @@ appcompat = "1.7.0"
 material = "1.12.0"
 constraintlayout = "2.2.0"
 lifecycle = "2.8.7"
+archCoreTesting = "2.2.0"
 room = "2.6.1"
 opencsv = "5.9"
 securityCrypto = "1.1.0-alpha06"
@@ -34,6 +35,7 @@ constraintlayout = { module = "androidx.constraintlayout:constraintlayout", vers
 lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", version.ref = "lifecycle" }
 lifecycle-livedata = { module = "androidx.lifecycle:lifecycle-livedata", version.ref = "lifecycle" }
 lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime", version.ref = "lifecycle" }
+core-testing = { module = "androidx.arch.core:core-testing", version.ref = "archCoreTesting" }
 activity = { module = "androidx.activity:activity", version.ref = "activity" }
 recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
 swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefresh" }
