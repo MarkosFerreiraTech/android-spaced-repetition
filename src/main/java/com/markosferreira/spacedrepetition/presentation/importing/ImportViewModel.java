@@ -120,11 +120,25 @@ public final class ImportViewModel extends ViewModel {
         }
     }
 
+    /**
+     * Traduz a falha em estado de tela.
+     *
+     * <p>Cada causa tem uma mensagem propria; a ordem das verificacoes importa
+     * porque {@code InvalidHeaderException} e mais especifica que as demais.
+     *
+     * @param cause falha da tarefa
+     * @return estado de erro correspondente
+     */
     private ImportState toFailure(final Throwable cause) {
+        final String expected = "question, option_a, option_b, option_c, option_d, "
+                + "correct_answer";
+
         if (cause instanceof ImportDeckUseCase.InvalidHeaderException) {
-            final ImportDeckUseCase.InvalidHeaderException invalidHeader =
-                    (ImportDeckUseCase.InvalidHeaderException) cause;
-            return new ImportStateBuilder().headerInvalid(invalidHeader.foundColumns());
+            final List<String> found =
+                    ((ImportDeckUseCase.InvalidHeaderException) cause).foundColumns();
+            final String columns = found.isEmpty() ? "(nenhuma)" : String.join(", ", found);
+            return ImportState.failed("Cabecalho invalido",
+                    "Colunas esperadas: " + expected + "\nColunas encontradas: " + columns);
         }
         if (cause instanceof CsvParser.CsvReadException) {
             return ImportState.failed("Arquivo indisponivel",
@@ -147,20 +161,4 @@ public final class ImportViewModel extends ViewModel {
         }
     }
 
-    /**
-     * Construtor de estados de falha especificos.
-     *
-     * <p>Existe para manter {@link #toFailure} curto e sem concatenacao de texto
-     * espalhada pelo metodo.
-     */
-    private static final class ImportStateBuilder {
-
-        ImportState headerInvalid(final List<String> foundColumns) {
-            final String expected = "question, option_a, option_b, option_c, option_d, "
-                    + "correct_answer";
-            final String found = foundColumns.isEmpty() ? "(nenhuma)" : String.join(", ", foundColumns);
-            return ImportState.failed("Cabecalho invalido",
-                    "Colunas esperadas: " + expected + "\nColunas encontradas: " + found);
-        }
-    }
 }

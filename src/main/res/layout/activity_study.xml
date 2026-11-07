@@ -57,12 +57,12 @@
                 tools:text="Qual servico da AWS oferece armazenamento de objetos?" />
 
             <!-- Alternativas: populadas em runtime, no maximo cinco -->
-            <LinearLayout
+            <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/options_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/spacing_l"
-                android:orientation="vertical" />
+                android:nestedScrollingEnabled="false" />
 
             <!-- Feedback: so aparece depois de confirmar -->
             <com.google.android.material.card.MaterialCardView
