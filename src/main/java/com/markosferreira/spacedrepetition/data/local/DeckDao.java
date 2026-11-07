@@ -33,6 +33,19 @@ public interface DeckDao {
     DeckEntity findById(String deckId);
 
     /**
+     * Busca o baralho pelo nome exato.
+     *
+     * <p>Pre-requisito do upsert idempotente: reimportar a mesma planilha
+     * precisa cair no baralho ja existente (RF06).
+     *
+     * @param name nome do baralho
+     * @return baralho ou null
+     */
+    @Nullable
+    @Query("SELECT * FROM decks WHERE name = :name LIMIT 1")
+    DeckEntity findByName(String name);
+
+    /**
      * Lista os baralhos ordenados pela ultima atividade, com contadores
      * agregados calculados no banco (RF10, RNF03).
      *

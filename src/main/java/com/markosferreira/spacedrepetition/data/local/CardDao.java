@@ -4,7 +4,7 @@ import androidx.annotation.Nullable;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.Update;
-import androidx.room.OnConflictStrategy;
+import androidx.room.Upsert;
 import androidx.room.Query;
 import androidx.room.Transaction;
 
@@ -22,7 +22,17 @@ public interface CardDao {
      *
      * @param cards questoes
      */
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    /**
+     * Insere ou atualiza um lote de questoes.
+     *
+     * <p>Deliberadamente {@link Upsert} e nao {@code @Insert(REPLACE)}: o
+     * REPLACE executa DELETE seguido de INSERT, e como {@code review_logs}
+     * referencia {@code cards} em {@code ON DELETE CASCADE}, reimportar uma
+     * planilha apagaria todo o historico de revisoes (violacao do RF06).
+     *
+     * @param cards questoes a persistir
+     */
+    @Upsert
     @Transaction
     void upsertAll(List<CardEntity> cards);
 
@@ -72,9 +82,6 @@ public interface CardDao {
      * @param cardId identificador
      * @return media ou 0 quando nao ha historico
      */
-    @Query("SELECT AVG(elapsed_millis) FROM review_logs WHERE card_id = :cardId")
-    double averageElapsedMillis(String cardId);
-
     /**
      * Questoes erradas na ultima tentativa (modo WRONG_ONLY).
      *
