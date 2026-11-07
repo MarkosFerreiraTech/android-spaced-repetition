@@ -77,7 +77,7 @@
         inteira de adaptadores de dados, inclusive as sinteticas.
     -->
     <Match>
-        <Class name="~com\\.markosferreira\\.spacedrepetition\\.data\\..*Repository.*"/>
+        <Class name="~com\.markosferreira\.spacedrepetition\.data\.repository\.Room.*Repository"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
 
