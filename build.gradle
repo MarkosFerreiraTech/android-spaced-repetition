@@ -178,12 +178,11 @@ spotbugs {
 tasks.register('spotbugsMain', SpotBugsTask) {
     description = 'Executa o SpotBugs sobre o bytecode de producao.'
     group = 'verification'
-    // As classes vem do build do Android, nao do source set Java do projeto raiz.
+    // As classes vem do build do Android, nao do source set Java do projeto raiz
+    // (SpotBugsTask expoe classDirs/sourceDirs, nao um `classpath`).
     dependsOn 'compileDebugJavaWithJavac'
-    classes = fileTree("${buildDir}/intermediates/javac/debug/compileDebugJavaWithJavac/classes") {
-        include '**/*.class'
-    }
-    classpath = files()
+    classDirs = files("${buildDir}/intermediates/javac/debug/compileDebugJavaWithJavac/classes")
+    sourceDirs = files('src/main/java')
     auxClassPaths = files()
     reports {
         html.required = true
