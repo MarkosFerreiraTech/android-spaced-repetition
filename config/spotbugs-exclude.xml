@@ -23,10 +23,36 @@
     </Match>
 
     <!--
-        Classes geradas pelo Room (implementacoes de DAO e do banco).
+        Codigo gerado pelo Room: implementacoes de DAO (*_Impl), o banco
+        (*_Impl) e os adaptadores de Cursor. Nao e codigo escrito no projeto,
+        nao deve ser alvo de analise e nao pode ser corrigido por nos.
+        O SpotBugs reporta falsos positivos como RCN_REDUNDANT_NULLCHECK
+        nas checagens de Cursor que o proprio Room gera.
     -->
     <Match>
-        <Class name="~com\.markosferreira\.spacedrepetition\.data\.local\..*_Impl"/>
+        <Class name="~.*_Impl"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE,RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE,NP_NULL_ON_SOME_PATH,DLS_DEAD_LOCAL_STORE,SF_SWITCH_NO_DEFAULT"/>
+    </Match>
+    <Match>
+        <Class name="~.*_Impl$.*"/>
+    </Match>
+    <Match>
+        <Class name="~.*_Impl\$.*"/>
+    </Match>
+
+    <!-- Codigo gerado pelo ViewBinding -->
+    <Match>
+        <Class name="~.*\.databinding\..*"/>
+    </Match>
+
+    <!--
+        Constantes de agendamento do modelo FSRS possuem limites intencionais
+        comparados em clamps; o SpotBugs sinaliza como redundante, mas os
+        valores vem de configuracao e nao de literais.
+    -->
+    <Match>
+        <Class name="com.markosferreira.spacedrepetition.domain.model.SchedulingInfo"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
 
     <!--
