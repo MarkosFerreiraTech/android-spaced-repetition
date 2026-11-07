@@ -70,10 +70,10 @@ public final class OpenCsvParser implements CsvParser {
         }
         try {
             return read(reader);
-        } catch (final IOException | RuntimeException exception) {
-            if (exception instanceof CsvReadException) {
-                throw (CsvReadException) exception;
-            }
+        } catch (final CsvReadException exception) {
+            // Ja e a falha de contrato da porta: propaga sem reembrulhar.
+            throw exception;
+        } catch (final RuntimeException exception) {
             throw new CsvReadException("Falha ao ler o CSV", exception);
         }
     }
