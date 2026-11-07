@@ -45,8 +45,11 @@ Formato: **Conventional Commits** com escopo e referência à issue.
 <tipo>(<escopo>): <descrição no imperativo> (#N)
 ```
 
-Tipos aceitos: `feat`, `fix`, `docs`, `test`, `refactor`, `chore`, `ci`, `perf`, `security`.
-Escopos: `domain`, `data`, `ui`, `fsrs`, `import`, `study`, `stats`, `ci`, `build`, `charter`, `requisitos`, `arquitetura`, `adr`, `readme`.
+Tipos aceitos: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
+Escopos: `domain`, `data`, `csv`, `fsrs`, `ui`, `study`, `stats`, `di`, `build`, `ci`, `docs`, `readme`, `repo`, `release`.
+
+O assunto tem no máximo 72 caracteres e não termina com ponto final. O escopo é
+obrigatório (exceto em `revert`).
 
 Exemplos reais do histórico:
 
@@ -57,6 +60,16 @@ ci(observabilidade): emitir erros do Gradle como anotacoes de check-run (#9)
 ```
 
 **Um commit = uma intenção.** Não misture correção de bug com formatação.
+
+O padrão é verificado automaticamente. Ative o hook uma vez por clone:
+
+```bash
+git config core.hooksPath scripts/git-hooks
+```
+
+A partir daí, uma mensagem como `ajustes` é recusada com a lista de tipos e o
+formato esperado. A convenção completa, incluindo a política SemVer e o
+checklist de release, está em [`docs/VERSIONAMENTO.md`](docs/VERSIONAMENTO.md).
 
 ## 4. Antes de abrir o Pull Request
 
