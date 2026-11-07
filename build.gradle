@@ -139,16 +139,27 @@ dependencies {
 checkstyle {
     toolVersion = '10.20.1'
     configFile = file('config/checkstyle/checkstyle.xml')
-    configProperties = ['checkstyle.cache.file': "${buildDir}/checkstyle-cachefile"]
     ignoreFailures = false
     maxWarnings = 0
     showViolations = true
 }
 
-tasks.withType(Checkstyle).configureEach {
+// O plugin Checkstyle cria tarefas por source set do projeto Java. Como o
+// projeto Android tem o codigo em src/main/java (e nao no source set "main"
+// do projeto raiz), nenhuma tarefa e criada pela convencao. Registramos uma
+// tarefa explicita, sem depender de nome inferido.
+tasks.register('checkstyleMain', Checkstyle) {
+    description = 'Executa o Checkstyle sobre o codigo de producao.'
+    group = 'verification'
+    source = fileTree('src/main/java') {
+        include '**/*.java'
+    }
+    classpath = files()
     reports {
         xml.required = true
+        xml.outputLocation = file("${buildDir}/reports/checkstyle/main.xml")
         html.required = true
+        html.outputLocation = file("${buildDir}/reports/checkstyle/main.html")
     }
 }
 
