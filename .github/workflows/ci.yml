@@ -123,12 +123,15 @@ jobs:
             python3 scripts/ci/checkstyle_report.py build/reports/checkstyle/main.xml || true
           else
             echo "::warning::Checkstyle nao gerou relatorio: a falha esta na configuracao da tarefa, nao no codigo."
-            # Imprime as ultimas linhas do log como anotacoes, sem filtro,
-            # para expor a causa raiz mesmo quando nenhuma palavra-chave casa.
-            tail -40 /tmp/checkstyle.log | sed 's/^/FAIL: /' | while IFS= read -r line; do
-              clean=$(printf '%s' "$line" | tr -d '\r' | sed 's/::/:/g' | cut -c1-350)
-              echo "::error::$clean"
-            done
+            # Extrai o bloco de diagnostico do Gradle, descartando stack frames.
+            grep -vE '^\s+at [a-zA-Z0-9_.]+\(' /tmp/checkstyle.log \
+              | grep -A12 -E 'What went wrong|Caused by|Execution failed for task|error:' \
+              | grep -v '^--$' \
+              | head -25 \
+              | while IFS= read -r line; do
+                  clean=$(printf '%s' "$line" | tr -d '\r' | sed 's/::/:/g' | cut -c1-300)
+                  echo "::error::$clean"
+                done
           fi
           exit $status
 
