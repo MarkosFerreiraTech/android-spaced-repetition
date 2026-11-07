@@ -130,15 +130,7 @@ public final class StudyActivity extends AppCompatActivity {
         binding.questionText.setText(state.card().question());
         binding.progressLabel.setText(getString(R.string.study_progress,
                 state.position(), state.total()));
-
-        if (optionAdapter.getItemCount() != state.options().size()
-                || !state.options().equals(lastOptions)) {
-            optionAdapter.submit(state.options());
-            lastOptions = state.options();
-        }
-        if (state.hasSelection()) {
-            optionAdapter.select(state.selectedIndex());
-        }
+        syncOptions(state);
 
         binding.checkboxFlagged.setChecked(state.flagged());
         binding.checkboxFlagged.setEnabled(answering);
@@ -147,11 +139,35 @@ public final class StudyActivity extends AppCompatActivity {
         binding.buttonPrimary.setEnabled(!answering || state.hasSelection());
 
         if (answering) {
-            binding.feedbackCard.setVisibility(View.GONE);
-            binding.optionsContainer.setVisibility(View.VISIBLE);
+            hideFeedback();
             return;
         }
+        showFeedback(state);
+    }
 
+    /**
+     * Sincroniza o adaptador apenas quando a questao muda.
+     *
+     * <p>Resubmeter a mesma lista a cada redesenho perderia a selecao e
+     * reiniciaria o estado do adaptador.
+     */
+    private void syncOptions(final StudyState state) {
+        final boolean changed = !state.options().equals(lastOptions);
+        if (changed) {
+            optionAdapter.submit(state.options());
+            lastOptions = state.options();
+        }
+        if (state.hasSelection()) {
+            optionAdapter.select(state.selectedIndex());
+        }
+    }
+
+    private void hideFeedback() {
+        binding.feedbackCard.setVisibility(View.GONE);
+        binding.optionsContainer.setVisibility(View.VISIBLE);
+    }
+
+    private void showFeedback(final StudyState state) {
         optionAdapter.reveal(state.card().correctIndex());
         binding.feedbackCard.setVisibility(View.VISIBLE);
         binding.feedbackTitle.setText(state.correct()
@@ -160,14 +176,16 @@ public final class StudyActivity extends AppCompatActivity {
                 ? R.color.feedback_correct : R.color.feedback_wrong));
         binding.feedbackCorrectAnswer.setText(getString(
                 R.string.study_feedback_correct_is, state.card().correctLetter()));
+        bindExplanation(state.card().explanation());
+    }
 
-        final String explanation = state.card().explanation();
+    private void bindExplanation(final String explanation) {
         if (explanation == null || explanation.isEmpty()) {
             binding.feedbackExplanation.setVisibility(View.GONE);
-        } else {
-            binding.feedbackExplanation.setVisibility(View.VISIBLE);
-            binding.feedbackExplanation.setText(explanation);
+            return;
         }
+        binding.feedbackExplanation.setVisibility(View.VISIBLE);
+        binding.feedbackExplanation.setText(explanation);
     }
 
     private void renderSummary(final StudyState state) {
