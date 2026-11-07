@@ -8,6 +8,7 @@ Uso: python3 scripts/ci/test_report.py [diretorio-de-resultados]
 """
 import glob
 import os
+import re
 import sys
 import xml.etree.ElementTree as ET
 
@@ -38,7 +39,12 @@ def main() -> int:
             emitted += 1
             class_name = case.get("classname", "?").replace(".", "/") + ".java"
             test_name = case.get("name", "?")
-            message = (node.get("message") or "falhou").replace("\n", " ")[:300]
+            # Rearranja a mensagem para que a PARTE ACIONAVEL venha primeiro.
+            # Uma violacao de arquitetura lista os nomes das classes antes de
+            # dizer o que esta errado; truncar no comeco entrega so o titulo da
+            # regra e nenhuma pista de qual classe violou.
+            raw = (node.get("message") or "falhou").replace("\n", " ")
+            message = _focus(raw)
             print(f"::error file=src/test/java/{class_name}::{test_name} -> {message}")
 
     if failures == 0:
@@ -46,6 +52,20 @@ def main() -> int:
         return 0
     print(f"::error::{failures} teste(s) falharam.")
     return 1
+
+
+def _focus(message):
+    """Encurta a mensagem preservando a parte que identifica a violacao.
+
+    Para violacoes do ArchUnit, as classes envolvidas aparecem no fim da
+    mensagem; para os demais casos, o inicio e o mais informativo.
+    """
+    match = re.search(r"was violated.*", message)
+    if match:
+        detail = match.group(0)
+        # "was violated (N times):" carrega o essencial; descarta os prefixos.
+        return detail[:900]
+    return message[:600]
 
 
 if __name__ == "__main__":
