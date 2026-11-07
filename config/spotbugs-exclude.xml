@@ -61,6 +61,18 @@
     </Match>
 
     <!--
+        Adaptadores de dados guardam referencias a DAOs, ao banco e ao fuso.
+        O SpotBugs sinaliza EI_EXPOSE_REP2 para qualquer tipo nao primitivo,
+        mas essas dependencias sao imutaveis ou thread-safe por contrato e sao
+        precisamente o que a injecao de dependencia deve receber — copiar um
+        banco de dados em cada construtor nao faz sentido.
+    -->
+    <Match>
+        <Class name="com.markosferreira.spacedrepetition.data.repository.Room*Repository"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!--
         Constantes de agendamento do modelo FSRS possuem limites intencionais
         comparados em clamps; o SpotBugs sinaliza como redundante, mas os
         valores vem de configuracao e nao de literais.
