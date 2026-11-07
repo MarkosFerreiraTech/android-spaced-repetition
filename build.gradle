@@ -173,10 +173,23 @@ spotbugs {
     excludeFilter.set(file('config/spotbugs-exclude.xml'))
 }
 
-tasks.withType(SpotBugsTask).configureEach {
+// Mesma razao do Checkstyle: o plugin cria tarefas por source set do projeto
+// Java, e o codigo Android nao esta no source set "main" do projeto raiz.
+tasks.register('spotbugsMain', SpotBugsTask) {
+    description = 'Executa o SpotBugs sobre o bytecode de producao.'
+    group = 'verification'
+    // As classes vem do build do Android, nao do source set Java do projeto raiz.
+    dependsOn 'compileDebugJavaWithJavac'
+    classes = fileTree("${buildDir}/intermediates/javac/debug/compileDebugJavaWithJavac/classes") {
+        include '**/*.class'
+    }
+    classpath = files()
+    auxClassPaths = files()
     reports {
         html.required = true
-        xml.required = false
+        html.outputLocation = file("${buildDir}/reports/spotbugs/main.html")
+        xml.required = true
+        xml.outputLocation = file("${buildDir}/reports/spotbugs/main.xml")
     }
 }
 
