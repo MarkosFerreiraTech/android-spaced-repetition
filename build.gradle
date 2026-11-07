@@ -184,6 +184,11 @@ tasks.register('spotbugsMain', SpotBugsTask) {
     classDirs = files("${buildDir}/intermediates/javac/debug/compileDebugJavaWithJavac/classes")
     sourceDirs = files('src/main/java')
     auxClassPaths = files()
+    // Sem esta linha o config/spotbugs-exclude.xml e ignorado e o SpotBugs
+    // reporta codigo gerado pelo Room e dependencias imutaveis como defeito.
+    excludeFilter = file('config/spotbugs-exclude.xml')
+    effort = Effort.valueOf('MAX')
+    reportLevel = Confidence.valueOf('MEDIUM')
     reports {
         html.required = true
         html.outputLocation = file("${buildDir}/reports/spotbugs/main.html")
