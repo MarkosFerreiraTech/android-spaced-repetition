@@ -3,6 +3,7 @@ package com.markosferreira.spacedrepetition.presentation.study;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import android.content.Intent;
+import android.view.View;
 import android.widget.TextView;
 
 import androidx.test.core.app.ApplicationProvider;
@@ -45,8 +46,10 @@ public final class StudyModeActivityTest {
 
         final ActivityController<StudyModeActivity> controller = abrir("d1");
 
+        final View cardFull = controller.get().findViewById(R.id.card_full);
+
         assertThat(controller.get().isFinishing()).isFalse();
-        assertThat(controller.get().findViewById(R.id.card_full)).isNotNull();
+        assertThat(cardFull).isNotNull();
 
         controller.pause().stop().destroy();
     }
