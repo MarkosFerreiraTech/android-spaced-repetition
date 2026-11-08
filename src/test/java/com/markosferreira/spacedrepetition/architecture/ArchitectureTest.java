@@ -231,6 +231,26 @@ class ArchitectureTest {
                             + "e o app fechar; Activities conversam com ViewModels");
 
     /**
+     * Nenhuma classe registra log com dados da aplicacao (RF26).
+     *
+     * <p>O RF26 exige logs sem dado sensivel do usuario — enunciado, resposta ou
+     * preferencia. O jeito mais seguro de cumprir isso em um app que guarda
+     * justamente respostas de simulado e nao registrar log algum: o projeto
+     * hoje nao usa {@code android.util.Log} em lugar nenhum, e esta regra
+     * mantem essa propriedade em vez de confiar em inspecao manual.
+     *
+     * <p>Se um dia for necessario logar para diagnostico, o caminho e um logger
+     * proprio que aceite apenas mensagens fixas, e nao uma excecao a esta regra.
+     */
+    @ArchTest
+    static final ArchRule NENHUM_LOG_DE_DADOS_DO_USUARIO =
+            noClasses()
+                    .should().accessClassesThat()
+                    .haveFullyQualifiedName("android.util.Log")
+                    .because("RF26: logs nao podem conter dado sensivel do usuario; "
+                            + "sem chamadas diretas a Log, nao ha como vazar");
+
+    /**
      * Guarda de sanidade: a analise precisa enxergar o projeto.
      *
      * <p>Sem isto, um filtro de importacao errado faria todas as regras

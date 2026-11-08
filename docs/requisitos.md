@@ -71,7 +71,7 @@
 | ID | Requisito | Prioridade | Verificação | Issue |
 |---|---|---|---|---|
 | **RF25** | O sistema deve exibir, para cada questão, a data da próxima revisão e o estágio atual de aprendizado. | Could | Espresso | #14 |
-| **RF26** | O sistema deve registrar logs de aplicação sem qualquer dado sensível do usuário (enunciado, resposta ou preferência). | Must | Regra de lint customizada + inspeção | #15 |
+| **RF26** | O sistema deve registrar logs de aplicação sem qualquer dado sensível do usuário (enunciado, resposta ou preferência). | Must | Regra ArchUnit proibindo `android.util.Log` (implementado em vez da regra de lint prevista) | #15 |
 
 ---
 
