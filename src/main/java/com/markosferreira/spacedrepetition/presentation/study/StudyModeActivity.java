@@ -23,6 +23,7 @@ public final class StudyModeActivity extends AppCompatActivity {
 
     private static final String EXTRA_DECK_ID = "deck_id";
 
+    private ActivityStudyModeBinding binding;
     private String deckId;
     private StudyModeViewModel viewModel;
     private int total;
@@ -45,8 +46,7 @@ public final class StudyModeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final ActivityStudyModeBinding binding =
-                ActivityStudyModeBinding.inflate(getLayoutInflater());
+        binding = ActivityStudyModeBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         deckId = getIntent().getStringExtra(EXTRA_DECK_ID);
