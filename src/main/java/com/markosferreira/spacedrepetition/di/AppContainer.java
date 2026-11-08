@@ -32,6 +32,7 @@ import com.markosferreira.spacedrepetition.data.concurrent.ImportExecutor;
 import com.markosferreira.spacedrepetition.presentation.deck.DeckListViewModel;
 import com.markosferreira.spacedrepetition.presentation.importing.ImportViewModel;
 import com.markosferreira.spacedrepetition.presentation.stats.StatsViewModel;
+import com.markosferreira.spacedrepetition.presentation.study.StudyModeViewModel;
 import com.markosferreira.spacedrepetition.presentation.study.StudyViewModel;
 
 import java.time.Clock;
@@ -286,6 +287,15 @@ public class AppContainer {
     public ImportViewModel importViewModel() {
         return new ImportViewModel(importDeckUseCase(), importExecutor(),
                 Clock.systemDefaultZone());
+    }
+
+    /**
+     * Fabrica do ViewModel da escolha de modo.
+     *
+     * @return ViewModel pronto para a tela
+     */
+    public StudyModeViewModel studyModeViewModel() {
+        return new StudyModeViewModel(cardRepository(), reviewRepository(), io());
     }
 
     /**

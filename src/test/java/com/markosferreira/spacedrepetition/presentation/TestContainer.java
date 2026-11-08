@@ -34,6 +34,8 @@ public final class TestContainer extends AppContainer {
     private final List<DeckSummary> decks = new ArrayList<>();
     private final List<StatisticsRepository.DeckAccuracy> accuracies = new ArrayList<>();
 
+    private final List<Card> studyCards = new ArrayList<>();
+
     private int totalReviews;
     private int correctReviews;
     private int streak;
@@ -68,6 +70,44 @@ public final class TestContainer extends AppContainer {
         decks.add(new DeckSummary(new Deck(id, name,
                 Instant.parse("2026-11-07T12:00:00Z"), null), total, due));
         return this;
+    }
+
+    /**
+     * Popula o baralho com questoes para a tela de estudo.
+     *
+     * @param deckId identificador do baralho
+     * @param quantity quantas questoes criar
+     * @return este container
+     */
+    public TestContainer withStudyCards(final String deckId, final int quantity) {
+        final List<Card> novas = new ArrayList<>();
+        for (int index = 0; index < quantity; index++) {
+            novas.add(novaQuestao(deckId, index));
+        }
+        this.studyCards.clear();
+        this.studyCards.addAll(novas);
+        return this;
+    }
+
+    /**
+     * Cria uma questao valida para o dublê.
+     *
+     * @param deckId baralho
+     * @param index posicao
+     * @return questao pronta
+     */
+    private static Card novaQuestao(final String deckId, final int index) {
+        return new Card.Builder()
+                .id(deckId + "-" + index)
+                .deckId(deckId)
+                .question("Questao " + (index + 1))
+                .options(List.of("Alternativa A", "Alternativa B",
+                        "Alternativa C", "Alternativa D"))
+                .correctIndex(1)
+                .explanation("Explicacao " + (index + 1))
+                .contentHash("hash-" + index)
+                .scheduling(SchedulingInfo.newCard())
+                .build();
     }
 
     /**
@@ -107,6 +147,18 @@ public final class TestContainer extends AppContainer {
     }
 
     /**
+     * ViewModel da escolha de modo com dublês em memoria.
+     *
+     * @return ViewModel pronto
+     */
+    @Override
+    public com.markosferreira.spacedrepetition.presentation.study.StudyModeViewModel
+            studyModeViewModel() {
+        return new com.markosferreira.spacedrepetition.presentation.study.StudyModeViewModel(
+                cardRepository(), reviewRepository(), SYNC);
+    }
+
+    /**
      * ViewModel de estudo com dublês em memoria.
      *
      * <p>Sobrescrito para que o container base nao tente abrir o Room com
@@ -128,7 +180,7 @@ public final class TestContainer extends AppContainer {
         return new CardRepository() {
             @Override
             public List<Card> findByDeck(final String deckId) {
-                return new ArrayList<>();
+                return new ArrayList<>(studyCards);
             }
 
             @Override

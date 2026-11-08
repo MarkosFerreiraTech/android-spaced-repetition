@@ -12,8 +12,6 @@ import com.markosferreira.spacedrepetition.CerebroApplication;
 import com.markosferreira.spacedrepetition.R;
 import com.markosferreira.spacedrepetition.databinding.ActivityStudyModeBinding;
 import com.markosferreira.spacedrepetition.domain.model.StudyMode;
-import com.markosferreira.spacedrepetition.domain.port.CardRepository;
-import com.markosferreira.spacedrepetition.domain.port.ReviewRepository;
 
 /**
  * Escolha do modo de sessao (RF12).
@@ -25,7 +23,12 @@ public final class StudyModeActivity extends AppCompatActivity {
 
     private static final String EXTRA_DECK_ID = "deck_id";
 
+    private ActivityStudyModeBinding binding;
     private String deckId;
+    private StudyModeViewModel viewModel;
+    private int total;
+    private int wrong;
+    private int wrongOrFlagged;
 
     /**
      * Cria o intent da tela.
@@ -43,8 +46,7 @@ public final class StudyModeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final ActivityStudyModeBinding binding =
-                ActivityStudyModeBinding.inflate(getLayoutInflater());
+        binding = ActivityStudyModeBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         deckId = getIntent().getStringExtra(EXTRA_DECK_ID);
@@ -53,25 +55,33 @@ public final class StudyModeActivity extends AppCompatActivity {
             return;
         }
 
-        final CerebroApplication application = (CerebroApplication) getApplication();
-        final CardRepository cards = application.container().cardRepository();
-        final ReviewRepository reviews = application.container().reviewRepository();
+        viewModel = ((CerebroApplication) getApplication()).container().studyModeViewModel();
 
-        final int total = cards.findByDeck(deckId).size();
-        final int wrong = reviews.findWrongByDeck(deckId).size();
-        final int wrongOrFlagged = reviews.findWrongOrFlaggedByDeck(deckId).size();
+        binding.toolbar.setNavigationOnClickListener(view -> finish());
+        binding.cardFull.setOnClickListener(view -> startSession(StudyMode.FULL, total));
+        binding.cardWrong.setOnClickListener(view -> startSession(StudyMode.WRONG_ONLY, wrong));
+        binding.cardWrongFlagged.setOnClickListener(
+                view -> startSession(StudyMode.WRONG_PLUS_FLAGGED, wrongOrFlagged));
+
+        // O calculo vai para o executor: consultar o Room aqui derrubava o app.
+        viewModel.counts().observe(this, this::renderCounts);
+        viewModel.load(deckId);
+    }
+
+    /**
+     * Desenha os textos com as contagens reais.
+     *
+     * @param counts contagens calculadas
+     */
+    private void renderCounts(final StudyModeViewModel.Counts counts) {
+        total = counts.total();
+        wrong = counts.wrong();
+        wrongOrFlagged = counts.wrongOrFlagged();
 
         binding.descFull.setText(getString(R.string.study_mode_full_desc, total));
         binding.descWrong.setText(getString(R.string.study_mode_wrong_desc, wrong));
         binding.descWrongFlagged.setText(
                 getString(R.string.study_mode_wrong_flagged_desc, wrongOrFlagged));
-
-        binding.toolbar.setNavigationOnClickListener(view -> finish());
-
-        binding.cardFull.setOnClickListener(view -> startSession(StudyMode.FULL, total));
-        binding.cardWrong.setOnClickListener(view -> startSession(StudyMode.WRONG_ONLY, wrong));
-        binding.cardWrongFlagged.setOnClickListener(
-                view -> startSession(StudyMode.WRONG_PLUS_FLAGGED, wrongOrFlagged));
 
         // Sem erros registrados, os dois modos de revisao nao tem o que mostrar.
         binding.modeEmptyMessage.setVisibility(wrong == 0 && wrongOrFlagged == 0
