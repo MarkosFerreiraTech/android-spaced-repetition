@@ -43,9 +43,13 @@ public final class StudyActivityTest {
                         com.markosferreira.spacedrepetition.domain.model.StudyMode.FULL))
                 .create();
 
-        assertThat(controller.get().findViewById(R.id.options_container)).isNotNull();
-        assertThat(controller.get().findViewById(R.id.button_primary)).isNotNull();
-        assertThat(controller.get().findViewById(R.id.checkbox_flagged)).isNotNull();
+        final View options = controller.get().findViewById(R.id.options_container);
+        final View primary = controller.get().findViewById(R.id.button_primary);
+        final View flagged = controller.get().findViewById(R.id.checkbox_flagged);
+
+        assertThat(options).isNotNull();
+        assertThat(primary).isNotNull();
+        assertThat(flagged).isNotNull();
 
         controller.pause().stop().destroy();
     }
