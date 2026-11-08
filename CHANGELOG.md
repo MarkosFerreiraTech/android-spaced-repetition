@@ -8,14 +8,61 @@ A convenção de commits está em [`docs/VERSIONAMENTO.md`](docs/VERSIONAMENTO.m
 
 ## [Não publicado]
 
+_Nada pendente no momento._
+
+## [1.0.0] — 2026-11-08
+
+Primeira versão completa: o ciclo inteiro funciona no aparelho, do CSV à revisão
+agendada.
+
 ### Adicionado
 
-- Telas de importação, listagem de baralhos, sessão de estudo e estatísticas (#12, #13, #14)
-- Testes ArchUnit cobrindo as regras de dependência entre camadas (#16)
+- **Tela de importação** com o seletor de arquivos do sistema (sem permissão de
+  armazenamento), relatório de linhas aceitas e rejeitadas e cancelamento em
+  andamento (#12)
+- **Lista de baralhos** com contagem de pendentes do dia, estado vazio que
+  orienta importar e recarga ao voltar de uma sessão (#12)
+- **Escolha de modo** com a contagem real de cada modalidade: tudo, só os erros,
+  erros mais marcadas (#13)
+- **Sessão de estudo** com alternativas coloridas por estado, flag "acertei com
+  dúvida", feedback com gabarito e explicação (#13)
+- **Tela de estatísticas** com acurácia global, total de revisões, sequência de
+  dias, baralho que precisa de atenção e acurácia por baralho (#14)
+- **Data da próxima revisão e estágio atual** no feedback de cada questão, com
+  comparação por dia de calendário em vez de diferença de horas (#14, RF25)
+- Testes de tela com **Robolectric**: inflação, ciclo de vida e população de
+  adaptadores
+- **12 regras ArchUnit**, incluindo a proibição de Activity acessar repositório e
+  a de registrar log com dado do usuário (RF26)
+- Arquivo de exemplo `docs/exemplos/aws-cloud-practitioner.csv`, verificado por
+  teste que roda o parser de produção
+
+### Corrigido
+
+- **Fechamento do app ao iniciar a sessão de estudo.** A tela de escolha de modo
+  consultava o Room na thread principal, o que lança exceção. As consultas
+  passaram a rodar em um `Executor` injetado, e uma regra ArchUnit impede que
+  qualquer Activity volte a acessar repositório diretamente
+- **Determinismo dos testes de lista:** o cálculo de diferenças do `ListAdapter`
+  roda em thread própria; o executor passou a ser injetável e os testes drenam o
+  looper principal
 
 ### Segurança
 
 - Atualização do `assertj-core` de 3.26.3 para 3.27.7, corrigindo vulnerabilidade de XXE
+- Nenhuma chamada a `android.util.Log` no código de produção, verificado em teste
+- Permissão `INTERNET` ausente do manifesto; nenhum dado sai do aparelho
+
+### Alterado
+
+- `OpenCSV` 5.9 → 5.12.0
+- Grupo de análise estática e grupo de GitHub Actions atualizados
+
+### Notas de upgrade
+
+Sem migração de dados pendente: o esquema Room desta versão é o mesmo da `0.2.0`
+e não há `fallbackToDestructiveMigration`.
+
 
 ## [0.2.0] — 2026-11-07
 

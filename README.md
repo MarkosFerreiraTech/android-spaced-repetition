@@ -7,8 +7,8 @@
 ![Android API](https://img.shields.io/badge/Android-7.0%2B%20(API%2024)-3DDC84?logo=android&logoColor=white)
 ![Java](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)
 ![Gradle](https://img.shields.io/badge/Gradle-8.11.1-02303A?logo=gradle&logoColor=white)
-![Status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)
-![Versão](https://img.shields.io/badge/vers%C3%A3o-0.2.0-informational)
+![Status](https://img.shields.io/badge/status-MVP%20entregue-success)
+![Versão](https://img.shields.io/badge/vers%C3%A3o-1.0.0-informational)
 
 ---
 
@@ -47,22 +47,27 @@ O **Cerebro** fecha esse ciclo:
 | **Persistência** | Room com 4 entidades, índices (incluindo `content_hash` único), 6 adaptadores implementando as portas de saída |
 | **Arquitetura** | Clean Architecture + MVVM, 6 portas de domínio, injeção por construtor, mappers que impedem vazamento de entidades |
 | **Importação** | Parser OpenCSV com RFC 4180, cabeçalho validado e erro por linha que não interrompe o arquivo |
-| **Qualidade** | JUnit 5 + AssertJ + Mockito, ArchUnit com 10 regras de camada, JaCoCo com gate (80% global / 95% domínio), Checkstyle, SpotBugs |
+| **Qualidade** | JUnit 5 + AssertJ + Mockito, ArchUnit com 13 regras de camada, JaCoCo com gate (80% global / 95% domínio), Checkstyle, SpotBugs |
 | **CI/CD** | GitHub Actions com 4 jobs: build+testes+cobertura+APK, análise estática, segurança, SonarCloud. Qodana como análise complementar |
 | **DevSecOps** | `EncryptedSharedPreferences` com MasterKey AES256-GCM no Keystore, classificação de dados, gitleaks, ausência da permissão `INTERNET` |
 | **Arquitetura de app** | Composition root sem framework (`AppContainer`), `CerebroApplication`, executor serial para importação |
+| **Telas** | Importação, listagem de baralhos, escolha de modo, sessão de estudo e estatísticas — XML + ViewBinding + Material 3, quatro estados por tela |
+| **Feedback de estudo** | Alternativas coloridas por estado, flag "acertei com dúvida", explicação e data da próxima revisão com o estágio atual (RF25) |
+| **Execução fora da thread de UI** | ViewModels recebem `Executor` injetado; acesso ao Room nunca ocorre na thread principal |
 
-### Planejado
+### Adiado para depois do 1.0.0
 
-| Issue | Entrega |
-|---|---|
-| [#12](https://github.com/MarkosFerreiraTech/android-spaced-repetition/issues/12) | Telas de importação e listagem de baralhos (XML + ViewBinding + Material 3) |
-| [#13](https://github.com/MarkosFerreiraTech/android-spaced-repetition/issues/13) | Tela de sessão de estudo com os três modos |
-| [#14](https://github.com/MarkosFerreiraTech/android-spaced-repetition/issues/14) | Tela de estatísticas e progresso |
-| [#19](https://github.com/MarkosFerreiraTech/android-spaced-repetition/issues/19) | Release v1.0.0 com APK |
+| Issue | Entrega | Motivo |
+|---|---|---|
+| [#19](https://github.com/MarkosFerreiraTech/android-spaced-repetition/issues/19) | Release v1.0.0 | Em andamento |
 
-Os ViewModels seguem o padrão MVVM e são testados em JVM pura com
-`InstantTaskExecutorRule`; as Activities são casca fina que apenas observa estado.
+### Notas de implementação
+
+Os ViewModels seguem o padrão MVVM e são testados em JVM pura; as Activities são
+casca fina que apenas observa estado. Os testes de tela usam **Robolectric**
+(inflação de layout e ciclo de vida), e não Espresso — o que significa que
+interação real de toque, animação e teclado depende de validação manual no
+aparelho.
 
 ## 🚀 Como executar
 
@@ -239,7 +244,43 @@ gitGraph
 
 ## 📊 Rastreabilidade
 
-O ciclo completo, do requisito ao commit:
+### Requisitos funcionais → Issue → Teste
+
+Cada RF aponta a issue que o entregou e o teste que o verifica. Onde o método
+declarado em [`docs/requisitos.md`](docs/requisitos.md) não cabia no runner, a
+coluna "Verificação" diz o que realmente existe — preferimos registrar a
+diferença a inventar cobertura.
+
+| RF | Entrega | Issue | Teste |
+|---|---|---|---|
+| RF01 | Importar planilha CSV | #11, #12 | `OpenCsvParserTest` |
+| RF02 | Colunas obrigatórias | #11 | `OpenCsvParserTest`, `CsvFixturesTest` |
+| RF03 | Ignorar linhas vazias | #11 | `OpenCsvParserTest` |
+| RF04 | Validar cabeçalho | #11 | `OpenCsvParserTest` |
+| RF05 | Menos de 2 alternativas é erro | #11 | `OpenCsvParserTest` |
+| RF06 | Preservar histórico em reimportação | #10, #11 | `RoomCardRepositoryTest`, `ImportDeckUseCaseTest` |
+| RF07 | Relatório com linhas rejeitadas | #12 | `ImportDeckUseCaseTest`, `ImportActivity` |
+| RF08 | Cancelar importação | #11 | `ImportViewModel` (cancelamento por `Future`) |
+| RF09 | Listar baralhos com contagem | #10, #12 | `DeckListViewModelTest`, `DeckListActivityTest` |
+| RF10 | Lista com pendentes do dia | #12 | `DeckListActivityTest` |
+| RF11 | Estado vazio orienta importar | #12 | `DeckListActivityTest` |
+| RF12 | Escolher modo de estudo | #13 | `StudyModeActivityTest` |
+| RF13 | Alternativas embaralhadas/coloridas | #13 | `StudyActivityTest` |
+| RF14 | Marcar "acertei com dúvida" | #13 | `StudyActivityTest`, `RatingPolicyTest` |
+| RF15 | Feedback com gabarito e explicação | #13 | `StudyActivityTest` |
+| RF16 | Agendar com FSRS | #8, #13 | `FsrsSchedulerTest` (18 casos) |
+| RF17 | Encerrar sessão com resumo | #13 | `StudyViewModel`, `StudyActivityTest` |
+| RF18 | Retomar sessão em andamento | #13 | `BuildStudyQueueUseCaseTest` |
+| RF19 | Acurácia global | #14 | `StatsActivityTest` |
+| RF20 | Total de revisões | #14 | `StatsActivityTest` |
+| RF21 | Acurácia por baralho | #14 | `StatsActivityTest` |
+| RF22 | Preferências cifradas | #15 | `EncryptedPreferencesRepositoryTest` |
+| RF23 | Keystore com chave mestra | #15 | `EncryptedPreferencesRepositoryTest` |
+| RF24 | Falha de Keystore sem texto puro | #15 | `EncryptedPreferencesRepositoryTest` |
+| RF25 | Data da próxima revisão e estágio | #14 | `ScheduleDescriptionTest` |
+| RF26 | Logs sem dado sensível | #15 | `ArchitectureTest.NENHUM_LOG_DE_DADOS_DO_USUARIO` |
+
+### Do requisito ao commit
 
 ```
 Requisito [RFxx]           docs/requisitos.md
@@ -256,6 +297,14 @@ Commit feat(escopo) (#N)   Conventional Commits
       ↓
 Teste automatizado         src/test/...
 ```
+
+### Exceções declaradas
+
+| Tema | Situação |
+|---|---|
+| **RF08** | O cancelamento existe e é testado no `ImportViewModel`, mas não há teste de interface: a Activity usa o seletor de arquivos do sistema |
+| **RF26** | O método prometido era "regra de lint customizada"; o que existe é uma regra ArchUnit que proíbe `android.util.Log`. Cumpre o requisito por outro meio — registrado aqui em vez de reescrito no requisito |
+| **Espresso** | Sem cobertura. Os testes de tela usam Robolectric (inflação e ciclo de vida); toque real, animação e teclado dependem de validação manual no aparelho |
 
 ## 🤝 Contribuindo
 

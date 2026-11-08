@@ -1,6 +1,7 @@
 package com.markosferreira.spacedrepetition.presentation.study;
 
 import com.markosferreira.spacedrepetition.domain.model.Card;
+import com.markosferreira.spacedrepetition.domain.model.SchedulingInfo;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,6 +30,7 @@ public final class StudyState {
 
     private final Phase phase;
     private final Card card;
+    private final SchedulingInfo nextScheduling;
     private final int position;
     private final int total;
     private final int selectedIndex;
@@ -41,6 +43,7 @@ public final class StudyState {
     private StudyState(final Builder builder) {
         this.phase = builder.phase;
         this.card = builder.card;
+        this.nextScheduling = builder.nextScheduling;
         this.position = builder.position;
         this.total = builder.total;
         this.selectedIndex = builder.selectedIndex;
@@ -76,10 +79,68 @@ public final class StudyState {
      * @return estado com feedback
      */
     public static StudyState feedback(final Card card, final int position, final int total,
-                                      final int selectedIndex, final boolean flagged,
-                                      final boolean correct) {
+                                      final Outcome outcome) {
         return new Builder().phase(Phase.FEEDBACK).card(card).position(position).total(total)
-                .selectedIndex(selectedIndex).flagged(flagged).correct(correct).build();
+                .selectedIndex(outcome.selectedIndex()).flagged(outcome.flagged())
+                .correct(outcome.correct()).nextScheduling(outcome.nextScheduling()).build();
+    }
+
+    /**
+     * O que aconteceu na resposta.
+     *
+     * <p>Agrupa os quatro valores que sempre andam juntos. Existe para manter a
+     * assinatura de {@link #feedback} legivel em vez de sete parametros soltos.
+     */
+    public static final class Outcome {
+
+        private final int selectedIndex;
+        private final boolean flagged;
+        private final boolean correct;
+        private final SchedulingInfo nextScheduling;
+
+        /**
+         * Cria o resultado da resposta.
+         *
+         * @param selectedIndex alternativa escolhida
+         * @param flagged marcada como duvida
+         * @param correct se acertou
+         * @param nextScheduling agendamento calculado
+         */
+        public Outcome(final int selectedIndex, final boolean flagged, final boolean correct,
+                       final SchedulingInfo nextScheduling) {
+            this.selectedIndex = selectedIndex;
+            this.flagged = flagged;
+            this.correct = correct;
+            this.nextScheduling = nextScheduling;
+        }
+
+        /**
+         * @return alternativa escolhida
+         */
+        public int selectedIndex() {
+            return selectedIndex;
+        }
+
+        /**
+         * @return se foi marcada como duvida
+         */
+        public boolean flagged() {
+            return flagged;
+        }
+
+        /**
+         * @return se acertou
+         */
+        public boolean correct() {
+            return correct;
+        }
+
+        /**
+         * @return agendamento calculado
+         */
+        public SchedulingInfo nextScheduling() {
+            return nextScheduling;
+        }
     }
 
     /**
@@ -119,6 +180,18 @@ public final class StudyState {
      *
      * @return questao ou null
      */
+    /**
+     * Agendamento calculado para a proxima revisao (RF25).
+     *
+     * <p>Nulo fora da fase de feedback: antes de responder a questao ainda nao
+     * foi reagendada.
+     *
+     * @return agendamento, ou nulo
+     */
+    public SchedulingInfo nextScheduling() {
+        return nextScheduling;
+    }
+
     public Card card() {
         return card;
     }
@@ -246,6 +319,7 @@ public final class StudyState {
     private static final class Builder {
         private Phase phase = Phase.ANSWERING;
         private Card card;
+        private SchedulingInfo nextScheduling;
         private int position;
         private int total;
         private int selectedIndex = -1;
@@ -262,6 +336,11 @@ public final class StudyState {
 
         Builder card(final Card value) {
             this.card = value;
+            return this;
+        }
+
+        Builder nextScheduling(final SchedulingInfo value) {
+            this.nextScheduling = value;
             return this;
         }
 

@@ -9,9 +9,12 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import java.time.ZoneId;
+
 import com.markosferreira.spacedrepetition.CerebroApplication;
 import com.markosferreira.spacedrepetition.R;
 import com.markosferreira.spacedrepetition.databinding.ActivityStudyBinding;
+import com.markosferreira.spacedrepetition.domain.model.CardState;
 import com.markosferreira.spacedrepetition.domain.model.StudyMode;
 
 /**
@@ -177,6 +180,66 @@ public final class StudyActivity extends AppCompatActivity {
         binding.feedbackCorrectAnswer.setText(getString(
                 R.string.study_feedback_correct_is, state.card().correctLetter()));
         bindExplanation(state.card().explanation());
+        bindSchedule(state);
+    }
+
+    /**
+     * Mostra quando a questao volta e em que estagio ela esta (RF25).
+     *
+     * <p>O texto so aparece no feedback: antes de responder, o agendamento da
+     * rodada ainda nao foi calculado.
+     *
+     * @param state estado com o agendamento
+     */
+    private void bindSchedule(final StudyState state) {
+        if (state.nextScheduling() == null) {
+            binding.feedbackSchedule.setVisibility(View.GONE);
+            return;
+        }
+        final ScheduleDescription schedule = ScheduleDescription.of(state.nextScheduling(),
+                java.time.Instant.now(), ZoneId.systemDefault());
+
+        binding.feedbackSchedule.setVisibility(View.VISIBLE);
+        binding.feedbackSchedule.setText(getString(R.string.study_schedule_line,
+                dueText(schedule), stageText(schedule.state())));
+    }
+
+    /**
+     * Texto do prazo de revisao.
+     *
+     * @param schedule descricao calculada
+     * @return frase do prazo
+     */
+    private String dueText(final ScheduleDescription schedule) {
+        switch (schedule.dueKind()) {
+            case TODAY:
+                return getString(R.string.schedule_today);
+            case TOMORROW:
+                return getString(R.string.schedule_tomorrow);
+            case IN_DAYS:
+                return getString(R.string.schedule_in_days, schedule.days());
+            default:
+                return getString(R.string.schedule_new);
+        }
+    }
+
+    /**
+     * Texto do estagio de aprendizado.
+     *
+     * @param state estagio da questao
+     * @return frase do estagio
+     */
+    private String stageText(final CardState state) {
+        switch (state) {
+            case LEARNING:
+                return getString(R.string.schedule_stage_learning);
+            case REVIEW:
+                return getString(R.string.schedule_stage_review);
+            case RELEARNING:
+                return getString(R.string.schedule_stage_relearning);
+            default:
+                return getString(R.string.schedule_stage_new);
+        }
     }
 
     private void bindExplanation(final String explanation) {

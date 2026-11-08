@@ -48,6 +48,16 @@
     <string name="study_mode_wrong_desc">As %1$d questoes que voce errou na ultima tentativa.</string>
     <string name="study_mode_wrong_flagged">Erros + marcadas</string>
     <string name="study_mode_wrong_flagged_desc">%1$d questoes: as erradas mais as que voce marcou com duvida.</string>
+    <!-- RF25: proxima revisao e estagio atual -->
+    <string name="schedule_new">Nova questao</string>
+    <string name="schedule_today">Volta hoje</string>
+    <string name="schedule_tomorrow">Volta amanha</string>
+    <string name="schedule_in_days">Volta em %1$d dias</string>
+    <string name="schedule_stage_new">Estagio: nova</string>
+    <string name="schedule_stage_learning">Estagio: aprendendo</string>
+    <string name="schedule_stage_review">Estagio: em revisao</string>
+    <string name="schedule_stage_relearning">Estagio: reaprendendo</string>
+    <string name="study_schedule_line">%1$s \u00b7 %2$s</string>
     <string name="study_mode_empty_wrong">Nenhum erro para revisar neste simulado.</string>
     <string name="study_progress">%1$d de %2$d</string>
     <string name="study_confirm">Confirmar</string>
