@@ -200,6 +200,37 @@ class ArchitectureTest {
                     .because("dependencias de ViewModel entram pelo construtor, nao por new");
 
     /**
+     * Nenhuma Activity toca repositorio diretamente.
+     *
+     * <p>Esta regra existe por causa de um defeito real: a tela de escolha de
+     * modo consultava o banco no {@code onCreate} e, como o Room proibe acesso
+     * na thread principal, o app fechava ao tocar em "estudar". O conserto foi
+     * mover as consultas para um ViewModel; a regra impede a reincidencia, que
+     * nao e pega por teste unitario de ViewModel nem por inflacao de layout.
+     */
+    @ArchTest
+    static final ArchRule ACTIVITY_NAO_ACESSA_REPOSITORIO =
+            classes()
+                    .that().haveSimpleNameEndingWith("Activity")
+                    .should().onlyAccessClassesThat()
+                    .areNotAssignableTo("com.markosferreira.spacedrepetition.domain.port"
+                            + ".CardRepository")
+                    .andShould().onlyAccessClassesThat()
+                    .areNotAssignableTo("com.markosferreira.spacedrepetition.domain.port"
+                            + ".ReviewRepository")
+                    .andShould().onlyAccessClassesThat()
+                    .areNotAssignableTo("com.markosferreira.spacedrepetition.domain.port"
+                            + ".DeckRepository")
+                    .andShould().onlyAccessClassesThat()
+                    .areNotAssignableTo("com.markosferreira.spacedrepetition.domain.port"
+                            + ".SessionRepository")
+                    .andShould().onlyAccessClassesThat()
+                    .areNotAssignableTo("com.markosferreira.spacedrepetition.domain.port"
+                            + ".StatisticsRepository")
+                    .because("acesso ao banco na thread de UI faz o Room lancar excecao "
+                            + "e o app fechar; Activities conversam com ViewModels");
+
+    /**
      * Guarda de sanidade: a analise precisa enxergar o projeto.
      *
      * <p>Sem isto, um filtro de importacao errado faria todas as regras
