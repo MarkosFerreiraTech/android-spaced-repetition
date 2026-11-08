@@ -3,8 +3,18 @@ package com.markosferreira.spacedrepetition.presentation;
 import com.markosferreira.spacedrepetition.di.AppContainer;
 import com.markosferreira.spacedrepetition.domain.model.Deck;
 import com.markosferreira.spacedrepetition.domain.model.DeckSummary;
+import com.markosferreira.spacedrepetition.domain.port.CardRepository;
 import com.markosferreira.spacedrepetition.domain.port.DeckRepository;
+import com.markosferreira.spacedrepetition.domain.port.ReviewRepository;
+import com.markosferreira.spacedrepetition.domain.port.SessionRepository;
 import com.markosferreira.spacedrepetition.domain.port.StatisticsRepository;
+import com.markosferreira.spacedrepetition.domain.model.Card;
+import com.markosferreira.spacedrepetition.domain.model.ReviewLog;
+import com.markosferreira.spacedrepetition.domain.model.SchedulingInfo;
+import com.markosferreira.spacedrepetition.domain.model.StudySession;
+import com.markosferreira.spacedrepetition.domain.usecase.AnswerQuestionUseCase;
+import com.markosferreira.spacedrepetition.domain.usecase.BuildStudyQueueUseCase;
+import com.markosferreira.spacedrepetition.domain.usecase.StartStudySessionUseCase;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -94,6 +104,88 @@ public final class TestContainer extends AppContainer {
     @Override
     public Executor io() {
         return SYNC;
+    }
+
+    /**
+     * ViewModel de estudo com dublês em memoria.
+     *
+     * <p>Sobrescrito para que o container base nao tente abrir o Room com
+     * contexto nulo — foi exatamente o que o Robolectric apontou.
+     */
+    @Override
+    public com.markosferreira.spacedrepetition.presentation.study.StudyViewModel studyViewModel() {
+        final CardRepository cards = cardRepository();
+        final SessionRepository sessions = sessionRepository();
+        return new com.markosferreira.spacedrepetition.presentation.study.StudyViewModel(
+                new StartStudySessionUseCase(
+                        new BuildStudyQueueUseCase(cards, reviewRepository()), sessions),
+                new AnswerQuestionUseCase(scheduler(), reviewRepository()),
+                cards, sessions, SYNC, java.time.Clock.systemDefaultZone());
+    }
+
+    @Override
+    public synchronized CardRepository cardRepository() {
+        return new CardRepository() {
+            @Override
+            public List<Card> findByDeck(final String deckId) {
+                return new ArrayList<>();
+            }
+
+            @Override
+            public Card findById(final String cardId) {
+                return null;
+            }
+
+            @Override
+            public UpsertResult upsertAll(final List<Card> cards) {
+                return new UpsertResult(0, 0);
+            }
+
+            @Override
+            public java.util.Set<String> findHashesByDeck(final String deckId) {
+                return new java.util.HashSet<>();
+            }
+        };
+    }
+
+    @Override
+    public synchronized ReviewRepository reviewRepository() {
+        return new ReviewRepository() {
+            @Override
+            public void record(final ReviewLog log, final SchedulingInfo nextScheduling) {
+                // Dublê: sem persistencia.
+            }
+
+            @Override
+            public List<Card> findWrongByDeck(final String deckId) {
+                return new ArrayList<>();
+            }
+
+            @Override
+            public List<Card> findWrongOrFlaggedByDeck(final String deckId) {
+                return new ArrayList<>();
+            }
+        };
+    }
+
+    @Override
+    public synchronized SessionRepository sessionRepository() {
+        return new SessionRepository() {
+            @Override
+            public void save(final StudySession session) {
+                // Dublê: sem persistencia.
+            }
+
+            @Override
+            public StudySession findInProgressByDeck(final String deckId) {
+                return null;
+            }
+
+            @Override
+            public StudySession findById(final String sessionId) {
+                return null;
+            }
+        };
     }
 
     @Override

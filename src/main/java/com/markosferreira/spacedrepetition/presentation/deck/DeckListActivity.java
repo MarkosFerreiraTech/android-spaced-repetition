@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.markosferreira.spacedrepetition.CerebroApplication;
 import com.markosferreira.spacedrepetition.R;
+import com.markosferreira.spacedrepetition.di.AppContainer;
 import com.markosferreira.spacedrepetition.databinding.ActivityDeckListBinding;
 import com.markosferreira.spacedrepetition.presentation.importing.ImportActivity;
 import com.markosferreira.spacedrepetition.presentation.stats.StatsActivity;
@@ -34,9 +35,12 @@ public final class DeckListActivity extends AppCompatActivity {
         binding = ActivityDeckListBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        viewModel = ((CerebroApplication) getApplication()).container().deckListViewModel();
+        final AppContainer container = ((CerebroApplication) getApplication()).container();
+        viewModel = container.deckListViewModel();
 
-        adapter = new DeckAdapter(this::openStudyModes);
+        // O diff roda no executor do container: em producao um pool, nos testes
+        // o mesmo executor sincrono dos ViewModels.
+        adapter = new DeckAdapter(this::openStudyModes, container.io());
         binding.deckList.setLayoutManager(new LinearLayoutManager(this));
         binding.deckList.setAdapter(adapter);
 

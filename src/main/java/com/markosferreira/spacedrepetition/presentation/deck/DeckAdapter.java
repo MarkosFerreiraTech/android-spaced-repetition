@@ -9,6 +9,8 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.concurrent.Executor;
+
 import com.markosferreira.spacedrepetition.databinding.ItemDeckBinding;
 
 /**
@@ -17,6 +19,10 @@ import com.markosferreira.spacedrepetition.databinding.ItemDeckBinding;
  * <p>Usa {@link ListAdapter} com {@link DiffUtil}: quando a tela recarrega apos
  * uma sessao, apenas os itens alterados sao redesenhados, sem perder a posicao
  * da rolagem nem piscar a lista inteira.
+ *
+ * <p>O executor do diff e injetavel por um motivo pratico: {@code ListAdapter}
+ * calcula a diferenca em uma thread propria, o que torna o momento em que
+ * {@code getItemCount()} muda imprevisivel. Nos testes o diff roda sincrono.
  */
 public final class DeckAdapter extends ListAdapter<DeckItem, DeckAdapter.DeckViewHolder> {
 
@@ -55,7 +61,17 @@ public final class DeckAdapter extends ListAdapter<DeckItem, DeckAdapter.DeckVie
      * @param listener acao de toque no item
      */
     public DeckAdapter(final OnDeckClickListener listener) {
-        super(DIFF);
+        this(listener, Runnable::run);
+    }
+
+    /**
+     * Cria o adaptador informando onde o diff deve rodar.
+     *
+     * @param listener acao de toque no item
+     * @param diffExecutor executor do calculo de diferencas
+     */
+    public DeckAdapter(final OnDeckClickListener listener, final Executor diffExecutor) {
+        super(DIFF, diffExecutor);
         this.listener = listener;
     }
 
