@@ -1,6 +1,7 @@
 package com.markosferreira.spacedrepetition.presentation.study;
 
 import com.markosferreira.spacedrepetition.domain.model.Card;
+import com.markosferreira.spacedrepetition.domain.model.SchedulingInfo;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,6 +30,7 @@ public final class StudyState {
 
     private final Phase phase;
     private final Card card;
+    private final SchedulingInfo nextScheduling;
     private final int position;
     private final int total;
     private final int selectedIndex;
@@ -41,6 +43,7 @@ public final class StudyState {
     private StudyState(final Builder builder) {
         this.phase = builder.phase;
         this.card = builder.card;
+        this.nextScheduling = builder.nextScheduling;
         this.position = builder.position;
         this.total = builder.total;
         this.selectedIndex = builder.selectedIndex;
@@ -77,9 +80,11 @@ public final class StudyState {
      */
     public static StudyState feedback(final Card card, final int position, final int total,
                                       final int selectedIndex, final boolean flagged,
-                                      final boolean correct) {
+                                      final boolean correct,
+                                      final SchedulingInfo nextScheduling) {
         return new Builder().phase(Phase.FEEDBACK).card(card).position(position).total(total)
-                .selectedIndex(selectedIndex).flagged(flagged).correct(correct).build();
+                .selectedIndex(selectedIndex).flagged(flagged).correct(correct)
+                .nextScheduling(nextScheduling).build();
     }
 
     /**
@@ -119,6 +124,18 @@ public final class StudyState {
      *
      * @return questao ou null
      */
+    /**
+     * Agendamento calculado para a proxima revisao (RF25).
+     *
+     * <p>Nulo fora da fase de feedback: antes de responder a questao ainda nao
+     * foi reagendada.
+     *
+     * @return agendamento, ou nulo
+     */
+    public SchedulingInfo nextScheduling() {
+        return nextScheduling;
+    }
+
     public Card card() {
         return card;
     }
@@ -246,6 +263,7 @@ public final class StudyState {
     private static final class Builder {
         private Phase phase = Phase.ANSWERING;
         private Card card;
+        private SchedulingInfo nextScheduling;
         private int position;
         private int total;
         private int selectedIndex = -1;
@@ -262,6 +280,11 @@ public final class StudyState {
 
         Builder card(final Card value) {
             this.card = value;
+            return this;
+        }
+
+        Builder nextScheduling(final SchedulingInfo value) {
+            this.nextScheduling = value;
             return this;
         }
 

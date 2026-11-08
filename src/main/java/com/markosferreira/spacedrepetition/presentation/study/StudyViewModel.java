@@ -173,7 +173,7 @@ public final class StudyViewModel extends ViewModel {
             flaggedCount = flaggedCount + 1;
         }
         state.postValue(StudyState.feedback(card, position + 1, queue.size(),
-                selectedIndex, flagged, result.correct()));
+                selectedIndex, flagged, result.correct(), result.nextScheduling()));
     }
 
     /**
