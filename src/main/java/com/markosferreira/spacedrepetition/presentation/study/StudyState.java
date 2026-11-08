@@ -79,12 +79,68 @@ public final class StudyState {
      * @return estado com feedback
      */
     public static StudyState feedback(final Card card, final int position, final int total,
-                                      final int selectedIndex, final boolean flagged,
-                                      final boolean correct,
-                                      final SchedulingInfo nextScheduling) {
+                                      final Outcome outcome) {
         return new Builder().phase(Phase.FEEDBACK).card(card).position(position).total(total)
-                .selectedIndex(selectedIndex).flagged(flagged).correct(correct)
-                .nextScheduling(nextScheduling).build();
+                .selectedIndex(outcome.selectedIndex()).flagged(outcome.flagged())
+                .correct(outcome.correct()).nextScheduling(outcome.nextScheduling()).build();
+    }
+
+    /**
+     * O que aconteceu na resposta.
+     *
+     * <p>Agrupa os quatro valores que sempre andam juntos. Existe para manter a
+     * assinatura de {@link #feedback} legivel em vez de sete parametros soltos.
+     */
+    public static final class Outcome {
+
+        private final int selectedIndex;
+        private final boolean flagged;
+        private final boolean correct;
+        private final SchedulingInfo nextScheduling;
+
+        /**
+         * Cria o resultado da resposta.
+         *
+         * @param selectedIndex alternativa escolhida
+         * @param flagged marcada como duvida
+         * @param correct se acertou
+         * @param nextScheduling agendamento calculado
+         */
+        public Outcome(final int selectedIndex, final boolean flagged, final boolean correct,
+                       final SchedulingInfo nextScheduling) {
+            this.selectedIndex = selectedIndex;
+            this.flagged = flagged;
+            this.correct = correct;
+            this.nextScheduling = nextScheduling;
+        }
+
+        /**
+         * @return alternativa escolhida
+         */
+        public int selectedIndex() {
+            return selectedIndex;
+        }
+
+        /**
+         * @return se foi marcada como duvida
+         */
+        public boolean flagged() {
+            return flagged;
+        }
+
+        /**
+         * @return se acertou
+         */
+        public boolean correct() {
+            return correct;
+        }
+
+        /**
+         * @return agendamento calculado
+         */
+        public SchedulingInfo nextScheduling() {
+            return nextScheduling;
+        }
     }
 
     /**
