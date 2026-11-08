@@ -5,6 +5,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.AsyncDifferConfig;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
@@ -20,9 +21,12 @@ import com.markosferreira.spacedrepetition.databinding.ItemDeckBinding;
  * uma sessao, apenas os itens alterados sao redesenhados, sem perder a posicao
  * da rolagem nem piscar a lista inteira.
  *
- * <p>O executor do diff e injetavel por um motivo pratico: {@code ListAdapter}
- * calcula a diferenca em uma thread propria, o que torna o momento em que
- * {@code getItemCount()} muda imprevisivel. Nos testes o diff roda sincrono.
+ * <p>Os executores do diff sao injetaveis por um motivo pratico:
+ * {@link ListAdapter} calcula a diferenca em uma thread propria e publica o
+ * resultado de volta na thread principal. Isso torna imprevisivel o instante em
+ * que {@code getItemCount()} muda — em um teste, a contagem pode ser lida antes
+ * do diff terminar. Nos testes o mesmo executor sincrono e usado nas duas
+ * pontas, entao {@code submitList} conclui antes de retornar.
  */
 public final class DeckAdapter extends ListAdapter<DeckItem, DeckAdapter.DeckViewHolder> {
 
@@ -61,18 +65,35 @@ public final class DeckAdapter extends ListAdapter<DeckItem, DeckAdapter.DeckVie
      * @param listener acao de toque no item
      */
     public DeckAdapter(final OnDeckClickListener listener) {
-        this(listener, Runnable::run);
+        this(listener, null);
     }
 
     /**
      * Cria o adaptador informando onde o diff deve rodar.
      *
      * @param listener acao de toque no item
-     * @param diffExecutor executor do calculo de diferencas
+     * @param diffExecutor executor do calculo e da publicacao do diff; quando
+     *                     nulo, o {@link ListAdapter} usa os padroes do Android
      */
     public DeckAdapter(final OnDeckClickListener listener, final Executor diffExecutor) {
-        super(DIFF, diffExecutor);
+        super(configureDiff(diffExecutor));
         this.listener = listener;
+    }
+
+    /**
+     * Monta a configuracao do diff.
+     *
+     * @param diffExecutor executor unico para calculo e publicacao, ou nulo
+     * @return configuracao do {@link ListAdapter}
+     */
+    private static AsyncDifferConfig<DeckItem> configureDiff(final Executor diffExecutor) {
+        final AsyncDifferConfig.Builder<DeckItem> builder = new AsyncDifferConfig.Builder<>(DIFF);
+        if (diffExecutor != null) {
+            // Mesmo executor nas duas pontas: em teste o diff fica sincrono.
+            builder.setBackgroundThreadExecutor(diffExecutor);
+            builder.setMainThreadExecutor(diffExecutor);
+        }
+        return builder.build();
     }
 
     @NonNull
