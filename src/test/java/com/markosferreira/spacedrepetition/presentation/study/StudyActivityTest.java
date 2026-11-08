@@ -9,6 +9,7 @@ import androidx.test.core.app.ApplicationProvider;
 
 import com.markosferreira.spacedrepetition.CerebroApplication;
 import com.markosferreira.spacedrepetition.R;
+import com.markosferreira.spacedrepetition.presentation.LooperIdle;
 import com.markosferreira.spacedrepetition.presentation.TestContainer;
 
 import org.junit.Before;
@@ -42,6 +43,7 @@ public final class StudyActivityTest {
                         ApplicationProvider.getApplicationContext(), "d1",
                         com.markosferreira.spacedrepetition.domain.model.StudyMode.FULL))
                 .create();
+        LooperIdle.idle();
 
         final View options = controller.get().findViewById(R.id.options_container);
         final View primary = controller.get().findViewById(R.id.button_primary);

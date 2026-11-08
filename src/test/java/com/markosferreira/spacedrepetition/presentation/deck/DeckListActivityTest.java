@@ -11,6 +11,7 @@ import androidx.test.core.app.ApplicationProvider;
 
 import com.markosferreira.spacedrepetition.CerebroApplication;
 import com.markosferreira.spacedrepetition.R;
+import com.markosferreira.spacedrepetition.presentation.LooperIdle;
 import com.markosferreira.spacedrepetition.presentation.TestContainer;
 
 import org.junit.Before;
@@ -47,6 +48,7 @@ public final class DeckListActivityTest {
     public void inflatesAndShowsEmptyStateWithoutDecks() {
         final ActivityController<DeckListActivity> controller =
                 Robolectric.buildActivity(DeckListActivity.class).setup();
+        LooperIdle.idle();
 
         assertThat(controller.get().findViewById(R.id.empty_state).getVisibility())
                 .isEqualTo(View.VISIBLE);
@@ -63,6 +65,7 @@ public final class DeckListActivityTest {
 
         final ActivityController<DeckListActivity> controller =
                 Robolectric.buildActivity(DeckListActivity.class).setup();
+        LooperIdle.idle();
 
         final RecyclerView list = controller.get().findViewById(R.id.deck_list);
         assertThat(list.getVisibility()).isEqualTo(View.VISIBLE);
@@ -79,6 +82,7 @@ public final class DeckListActivityTest {
         container.withDeck("d1", "Simulado AWS", 10, 1);
         final ActivityController<DeckListActivity> controller =
                 Robolectric.buildActivity(DeckListActivity.class).setup();
+        LooperIdle.idle();
 
         controller.get().findViewById(R.id.fab_import).performClick();
 
@@ -92,6 +96,7 @@ public final class DeckListActivityTest {
     public void emptystateImportButtonOpensImportScreen() {
         final ActivityController<DeckListActivity> controller =
                 Robolectric.buildActivity(DeckListActivity.class).setup();
+        LooperIdle.idle();
 
         controller.get().findViewById(R.id.button_empty_import).performClick();
 
@@ -109,6 +114,8 @@ public final class DeckListActivityTest {
         // Simula a volta de uma sessao que criou um baralho novo.
         container.withDeck("d2", "Novo", 3, 3);
         controller.pause().resume();
+        // O carregamento do onResume vai para o executor e volta por postValue.
+        LooperIdle.idle();
 
         final RecyclerView list = controller.get().findViewById(R.id.deck_list);
         assertThat(list.getAdapter().getItemCount()).isEqualTo(2);
@@ -120,6 +127,7 @@ public final class DeckListActivityTest {
     public void hidesFabOnEmptyState() {
         final ActivityController<DeckListActivity> controller =
                 Robolectric.buildActivity(DeckListActivity.class).setup();
+        LooperIdle.idle();
 
         // Dois botoes identicos confundem: no vazio, so o do estado vazio aparece.
         assertThat(controller.get().findViewById(R.id.fab_import).getVisibility())

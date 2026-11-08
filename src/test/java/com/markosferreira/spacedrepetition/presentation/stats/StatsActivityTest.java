@@ -9,6 +9,7 @@ import androidx.test.core.app.ApplicationProvider;
 
 import com.markosferreira.spacedrepetition.CerebroApplication;
 import com.markosferreira.spacedrepetition.R;
+import com.markosferreira.spacedrepetition.presentation.LooperIdle;
 import com.markosferreira.spacedrepetition.presentation.TestContainer;
 
 import org.junit.Before;
@@ -37,6 +38,7 @@ public final class StatsActivityTest {
     public void inflatesAndShowsEmptyStateWithoutReviews() {
         final ActivityController<StatsActivity> controller =
                 Robolectric.buildActivity(StatsActivity.class).setup();
+        LooperIdle.idle();
 
         assertThat(controller.get().findViewById(R.id.stats_empty).getVisibility())
                 .isEqualTo(View.VISIBLE);
@@ -54,6 +56,7 @@ public final class StatsActivityTest {
 
         final ActivityController<StatsActivity> controller =
                 Robolectric.buildActivity(StatsActivity.class).setup();
+        LooperIdle.idle();
 
         assertThat(text(controller, R.id.value_accuracy)).isEqualTo("75%");
         assertThat(text(controller, R.id.value_total_reviews)).isEqualTo("200");
@@ -70,6 +73,7 @@ public final class StatsActivityTest {
 
         final ActivityController<StatsActivity> controller =
                 Robolectric.buildActivity(StatsActivity.class).setup();
+        LooperIdle.idle();
 
         assertThat(controller.get().findViewById(R.id.worst_deck).getVisibility())
                 .isEqualTo(View.VISIBLE);
@@ -87,6 +91,7 @@ public final class StatsActivityTest {
 
         final ActivityController<StatsActivity> controller =
                 Robolectric.buildActivity(StatsActivity.class).setup();
+        LooperIdle.idle();
 
         final android.widget.LinearLayout rows =
                 controller.get().findViewById(R.id.by_deck_container);

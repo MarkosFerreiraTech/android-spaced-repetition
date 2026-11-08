@@ -21,12 +21,11 @@ import com.markosferreira.spacedrepetition.databinding.ItemDeckBinding;
  * uma sessao, apenas os itens alterados sao redesenhados, sem perder a posicao
  * da rolagem nem piscar a lista inteira.
  *
- * <p>Os executores do diff sao injetaveis por um motivo pratico:
- * {@link ListAdapter} calcula a diferenca em uma thread propria e publica o
- * resultado de volta na thread principal. Isso torna imprevisivel o instante em
- * que {@code getItemCount()} muda — em um teste, a contagem pode ser lida antes
- * do diff terminar. Nos testes o mesmo executor sincrono e usado nas duas
- * pontas, entao {@code submitList} conclui antes de retornar.
+ * <p>O executor do diff e injetavel por um motivo pratico: {@link ListAdapter}
+ * calcula a diferenca em uma thread propria, o que torna imprevisivel o instante
+ * em que {@code getItemCount()} muda. Em producao usa-se o pool do processo; nos
+ * testes, um executor sincrono, e o teste drena o looper principal antes de
+ * conferir a contagem (a publicacao do diff sempre volta pela main thread).
  */
 public final class DeckAdapter extends ListAdapter<DeckItem, DeckAdapter.DeckViewHolder> {
 
@@ -89,9 +88,10 @@ public final class DeckAdapter extends ListAdapter<DeckItem, DeckAdapter.DeckVie
     private static AsyncDifferConfig<DeckItem> configureDiff(final Executor diffExecutor) {
         final AsyncDifferConfig.Builder<DeckItem> builder = new AsyncDifferConfig.Builder<>(DIFF);
         if (diffExecutor != null) {
-            // Mesmo executor nas duas pontas: em teste o diff fica sincrono.
+            // Apenas o executor de background e API publica. A publicacao do
+            // resultado continua voltando pela main thread, o que e desejavel:
+            // o teste drena o looper em vez de a producao ganhar um atalho.
             builder.setBackgroundThreadExecutor(diffExecutor);
-            builder.setMainThreadExecutor(diffExecutor);
         }
         return builder.build();
     }
