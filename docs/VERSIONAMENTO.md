@@ -35,7 +35,9 @@ Rodapé opcional: Closes #12
 
 ### 1.2 Escopo obrigatório
 
-O escopo identifica a área tocada, em minúsculas. Escopos em uso:
+O escopo identifica a área tocada, em minúsculas. **Um escopo por commit** —
+para mudanças em duas áreas, faça dois commits. O escape aceita apenas
+`a-z`, `0-9`, `.`, `_`, `/` e `-`, sem espaços nem vírgulas. Escopos em uso:
 
 `domain` · `data` · `csv` · `fsrs` · `ui` · `stats` · `study` · `di` ·
 `build` · `ci` · `docs` · `readme` · `repo` · `release`

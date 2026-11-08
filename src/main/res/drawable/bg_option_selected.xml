@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fundo da alternativa selecionada: contorno na cor primaria. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/surface_variant" />
+    <stroke
+        android:width="2dp"
+        android:color="@color/brand_primary" />
+    <corners android:radius="@dimen/card_corner" />
+</shape>

@@ -48,7 +48,9 @@ public class DeckListViewModelTest {
     @Before
     public void setUp() {
         final Clock clock = Clock.fixed(NOW, ZoneOffset.UTC);
-        viewModel = new DeckListViewModel(deckRepository, clock);
+        // Executor sincrono: o carregamento acontece na chamada de load(),
+        // o que torna os testes deterministicos.
+        viewModel = new DeckListViewModel(deckRepository, Runnable::run, clock);
     }
 
     @Test

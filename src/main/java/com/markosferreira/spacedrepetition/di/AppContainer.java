@@ -27,7 +27,15 @@ import com.markosferreira.spacedrepetition.domain.usecase.AnswerQuestionUseCase;
 import com.markosferreira.spacedrepetition.domain.usecase.BuildStudyQueueUseCase;
 import com.markosferreira.spacedrepetition.domain.usecase.ImportDeckUseCase;
 import com.markosferreira.spacedrepetition.domain.usecase.StartStudySessionUseCase;
+import com.markosferreira.spacedrepetition.data.concurrent.AppExecutors;
+import com.markosferreira.spacedrepetition.data.concurrent.ImportExecutor;
 import com.markosferreira.spacedrepetition.presentation.deck.DeckListViewModel;
+import com.markosferreira.spacedrepetition.presentation.importing.ImportViewModel;
+import com.markosferreira.spacedrepetition.presentation.stats.StatsViewModel;
+import com.markosferreira.spacedrepetition.presentation.study.StudyViewModel;
+
+import java.time.Clock;
+import java.util.concurrent.Executor;
 
 /**
  * Container de injecao de dependencia da aplicacao.
@@ -40,8 +48,13 @@ import com.markosferreira.spacedrepetition.presentation.deck.DeckListViewModel;
  * <p>As camadas de dominio e apresentacao nao conhecem esta classe: recebem as
  * portas por construtor. Trocar uma implementacao aqui nao toca em mais
  * nenhum arquivo (Dependency Inversion).
+ *
+ * <p><b>Extensao em teste.</b> A classe nao e {@code final} de proposito: os
+ * testes de tela (Robolectric) estendem este container para substituir
+ * repositorios por dublês e o executor de IO por um sincrono, sem tocar em
+ * codigo de producao.
  */
-public final class AppContainer {
+public class AppContainer {
 
     private final Context context;
 
@@ -55,6 +68,8 @@ public final class AppContainer {
     private StatisticsRepository statisticsRepository;
     private ReviewScheduler scheduler;
 
+    private AppExecutors appExecutors;
+    private ImportExecutor importExecutor;
     private ImportDeckUseCase importDeckUseCase;
     private StartStudySessionUseCase startStudySessionUseCase;
     private AnswerQuestionUseCase answerQuestionUseCase;
@@ -66,7 +81,9 @@ public final class AppContainer {
      *                tanto quanto o processo)
      */
     public AppContainer(final Context context) {
-        this.context = context.getApplicationContext();
+        // Aceita nulo para permitir containers de teste que sobrescrevem tudo
+        // que dependeria de contexto (banco, preferencias).
+        this.context = context == null ? null : context.getApplicationContext();
     }
 
     /**
@@ -218,7 +235,77 @@ public final class AppContainer {
      * @return ViewModel pronto para a tela
      */
     public DeckListViewModel deckListViewModel() {
-        return new DeckListViewModel(deckRepository(), java.time.Clock.systemDefaultZone());
+        return new DeckListViewModel(deckRepository(), io(),
+                Clock.systemDefaultZone());
+    }
+
+    /**
+     * Executor usado pelos ViewModels.
+     *
+     * <p>Ponto de extensao para os testes de tela, que substituem o pool por um
+     * executor sincrono. Em producao delega ao pool real.
+     *
+     * @return executor de background
+     */
+    public Executor io() {
+        return appExecutors().io();
+    }
+
+    /**
+     * Executores do processo.
+     *
+     * @return executores
+     */
+    public synchronized AppExecutors appExecutors() {
+        if (appExecutors == null) {
+            appExecutors = new AppExecutors();
+        }
+        return appExecutors;
+    }
+
+    /**
+     * Executor das tarefas de importacao.
+     *
+     * <p>Uma unica instancia por processo: duas importacoes simultaneas
+     * disputariam escrita no mesmo baralho.
+     *
+     * @return executor serial
+     */
+    public synchronized ImportExecutor importExecutor() {
+        if (importExecutor == null) {
+            importExecutor = new ImportExecutor(BuildConfig.CSV_IMPORT_POOL_SIZE);
+        }
+        return importExecutor;
+    }
+
+    /**
+     * Fabrica do ViewModel de importacao.
+     *
+     * @return ViewModel pronto para a tela
+     */
+    public ImportViewModel importViewModel() {
+        return new ImportViewModel(importDeckUseCase(), importExecutor(),
+                Clock.systemDefaultZone());
+    }
+
+    /**
+     * Fabrica do ViewModel de sessao de estudo.
+     *
+     * @return ViewModel pronto para a tela
+     */
+    public StudyViewModel studyViewModel() {
+        return new StudyViewModel(startStudySessionUseCase(), answerQuestionUseCase(),
+                cardRepository(), sessionRepository(), io(),
+                Clock.systemDefaultZone());
+    }
+
+    /**
+     * Fabrica do ViewModel de estatisticas.
+     *
+     * @return ViewModel pronto para a tela
+     */
+    public StatsViewModel statsViewModel() {
+        return new StatsViewModel(statisticsRepository(), io());
     }
 
     /**

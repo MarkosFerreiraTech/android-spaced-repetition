@@ -38,3 +38,4 @@ lint-results*.xml
 *.log
 *.tmp
 tmp/
+__pycache__/

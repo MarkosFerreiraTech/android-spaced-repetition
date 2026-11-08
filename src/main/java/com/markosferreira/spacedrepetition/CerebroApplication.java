@@ -28,4 +28,15 @@ public final class CerebroApplication extends Application {
     public AppContainer container() {
         return container;
     }
+
+    /**
+     * Substitui o container. Existe apenas para os testes de tela, que precisam
+     * de repositorios dublês e de um executor sincrono; em producao o container
+     * e criado uma unica vez no {@code onCreate}.
+     *
+     * @param replacement container de teste
+     */
+    public void setContainer(final AppContainer replacement) {
+        this.container = replacement;
+    }
 }

@@ -11,6 +11,16 @@ DEFAULT_PATH = "build/reports/checkstyle/main.xml"
 MAX_ANNOTATIONS = 50
 
 
+def _relative(path: str) -> str:
+    """Converte o caminho absoluto do runner em caminho relativo ao repositorio."""
+    normalizado = path.replace("\\", "/")
+    marcador = "/src/"
+    indice = normalizado.find(marcador)
+    if indice >= 0:
+        return "src/" + normalizado[indice + len(marcador):]
+    return os.path.basename(normalizado)
+
+
 def main() -> int:
     path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_PATH
     if not os.path.exists(path):
@@ -31,7 +41,11 @@ def main() -> int:
             line = error.get("line", "1")
             message = (error.get("message") or "").replace("\n", " ")
             source = error.get("source", "").split(".")[-1]
-            print(f"::error file={file_name},line={line}::{source}: {message}")
+            # A anotacao precisa dizer QUAL arquivo e QUAL linha. Sem isso o
+            # GitHub agrupa a mensagem em .github e nao da para localizar a
+            # violacao em uma sessao sem acesso ao artefato.
+            relativo = _relative(file_name)
+            print(f"::error file={relativo},line={line}::{source}: {message}")
 
     if violations == 0:
         print("OK: nenhuma violacao de Checkstyle.")

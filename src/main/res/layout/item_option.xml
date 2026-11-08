@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Alternativa de uma questao (RF13).
+    O fundo muda via background selecionavel, nao por cor fixa: assim o estado
+    neutro, selecionado, correto e errado sao quatro drawables explicitos.
+-->
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/option_card"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/spacing_s"
+    android:clickable="true"
+    android:focusable="true"
+    android:minHeight="@dimen/touch_target_min"
+    app:cardCornerRadius="@dimen/card_corner"
+    app:cardElevation="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="@dimen/spacing_m">
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/option_letter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="24dp"
+            android:textAppearance="?attr/textAppearanceTitleSmall"
+            tools:text="A)" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/option_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_s"
+            android:layout_weight="1"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            tools:text="S3" />
+
+        <ImageView
+            android:id="@+id/option_mark"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:importantForAccessibility="no"
+            android:visibility="gone"
+            tools:src="@drawable/ic_check" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

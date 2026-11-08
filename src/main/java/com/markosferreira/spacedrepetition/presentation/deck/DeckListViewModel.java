@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.markosferreira.spacedrepetition.data.concurrent.AppExecutors;
 import com.markosferreira.spacedrepetition.domain.model.DeckSummary;
 import com.markosferreira.spacedrepetition.domain.port.DeckRepository;
 
@@ -11,6 +12,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 /**
  * ViewModel da lista de baralhos (RF10, RF11).
@@ -26,6 +28,7 @@ import java.util.List;
 public final class DeckListViewModel extends ViewModel {
 
     private final DeckRepository deckRepository;
+    private final Executor io;
     private final Clock clock;
 
     private final MutableLiveData<DeckListState> state = new MutableLiveData<>();
@@ -34,10 +37,13 @@ public final class DeckListViewModel extends ViewModel {
      * Cria o ViewModel.
      *
      * @param deckRepository porta de baralhos
+     * @param io executor de background (o Room proibe acesso na thread de UI)
      * @param clock fonte de tempo, injetavel para teste
      */
-    public DeckListViewModel(final DeckRepository deckRepository, final Clock clock) {
+    public DeckListViewModel(final DeckRepository deckRepository, final Executor io,
+                             final Clock clock) {
         this.deckRepository = deckRepository;
+        this.io = io;
         this.clock = clock;
     }
 
@@ -58,21 +64,27 @@ public final class DeckListViewModel extends ViewModel {
      */
     public void load() {
         state.setValue(DeckListState.loading());
+        // Room lanca excecao na thread principal: a consulta vai para background
+        // e o resultado volta por postValue, que publica na thread de UI.
+        io.execute(this::loadBlocking);
+    }
+
+    private void loadBlocking() {
         try {
             final Instant now = clock.instant();
             final List<DeckSummary> summaries = deckRepository.findAllWithCounts(now);
             if (summaries.isEmpty()) {
                 // RF11: estado vazio com instrucao de importacao.
-                state.setValue(DeckListState.empty());
+                state.postValue(DeckListState.empty());
                 return;
             }
             final List<DeckItem> items = new ArrayList<>(summaries.size());
             for (final DeckSummary summary : summaries) {
                 items.add(toItem(summary));
             }
-            state.setValue(DeckListState.loaded(items));
+            state.postValue(DeckListState.loaded(items));
         } catch (final RuntimeException exception) {
-            state.setValue(DeckListState.failed("Nao foi possivel carregar os baralhos"));
+            state.postValue(DeckListState.failed("Nao foi possivel carregar os baralhos"));
         }
     }
 

@@ -210,5 +210,6 @@ class ArchitectureTest {
             classes()
                     .that().resideInAPackage(RAIZ + ".domain.model..")
                     .should().bePublic()
-                    .because("os modelos do dominio sao publicos; se a varredura vier vazia, a analise nao enxerga o projeto");
+                    .because("os modelos do dominio sao publicos; se a varredura "
+                            + "vier vazia, a analise nao enxerga o projeto");
 }

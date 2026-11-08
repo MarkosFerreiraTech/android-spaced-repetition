@@ -15,5 +15,10 @@
     <color name="feedback_wrong">#B3261E</color>
     <color name="feedback_flagged">#8A5300</color>
 
+    <!-- Estados das alternativas (RF13) -->
+    <color name="option_selected_bg">#E3E2E6</color>
+    <color name="option_correct_bg">#DFF3E0</color>
+    <color name="option_wrong_bg">#FBE3E1</color>
+
     <color name="ic_launcher_background">#1B5E9E</color>
 </resources>
