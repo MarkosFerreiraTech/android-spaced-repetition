@@ -51,7 +51,7 @@ jobs:
           java-version: '17'
 
       - name: Qodana Scan
-        uses: JetBrains/qodana-action@v2026.2
+        uses: JetBrains/qodana-action@v2026.3
         with:
           # O linter Android roda o Gradle do projeto por baixo; sem RAM
           # suficiente o daemon morre com OOM durante a indexacao.
